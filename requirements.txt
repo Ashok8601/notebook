@@ -1,6 +1,13 @@
 Flask
 Flask-APScheduler
+email-validator
+flask-cors
+pandas
+numpy
+scikit-learn
+matplotlib
+gunicorn
 reportlab
 python-docx
+apscheduler
 Werkzeug
-email-validator
