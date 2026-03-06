@@ -17,6 +17,7 @@ UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:63342"}}, supports_credentials=True)
 #app.secret_key = "ashokkumaryadav"
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")
 app.config.update(
     SESSION_COOKIE_SAMESITE='None',
     SESSION_COOKIE_SECURE=True,
