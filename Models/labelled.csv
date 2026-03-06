@@ -1,0 +1,953 @@
+keyword,category
+code,Coding
+program,Coding
+python,Coding
+java,Coding
+c++,Coding
+javascript,Coding
+html,Coding
+css,Coding
+algorithm,Coding
+function,Coding
+variable,Coding
+loop,Coding
+array,Coding
+stack,Coding
+queue,Coding
+list,Coding
+dictionary,Coding
+class,Coding
+object,Coding
+compile,Coding
+debug,Coding
+error,Coding
+exception,Coding
+syntax,Coding
+binary,Coding
+search,Coding
+sort,Coding
+tree,Coding
+graph,Coding
+recursion,Coding
+pointer,Coding
+git,Coding
+repository,Coding
+api,Coding
+framework,Coding
+library,Coding
+module,Coding
+package,Coding
+input,Coding
+output,Coding
+server,Coding
+client,Coding
+json,Coding
+xml,Coding
+sql,Coding
+database,Coding
+query,Coding
+linux,Coding
+bash,Coding
+terminal,Coding
+thread,Coding
+process,Coding
+unit test,Coding
+deploy,Coding
+build,Coding
+docker,Coding
+container,Coding
+virtual,Coding
+session,Coding
+token,Coding
+encrypt,Coding
+secure,Coding
+protocol,Coding
+socket,Coding
+network,Coding
+http,Coding
+https,Coding
+rest,Coding
+microservice,Coding
+oop,Coding
+functional,Coding
+lambda,Coding
+interface,Coding
+inheritance,Coding
+override,Coding
+constructor,Coding
+destructor,Coding
+object oriented,Coding
+compiler,Coding
+interpreter,Coding
+runtime,Coding
+stack overflow,Coding
+heap,Coding
+memory,Coding
+pointer,Coding
+reference,Coding
+debugger,Coding
+ide,Coding
+vscode,Coding
+pycharm,Coding
+intellij,Coding
+arraylist,Coding
+linkedlist,Coding
+binary search,Coding
+quick sort,Coding
+merge sort,Coding
+bubble sort,Coding
+insertion sort,Coding
+selection sort,Coding
+hash,Coding
+hashmap,Coding
+cache,Coding
+performance,Coding
+optimization,Coding
+software,Coding
+architecture,Coding
+design pattern,Coding
+singleton,Coding
+factory,Coding
+observer,Coding
+mvc,Coding
+mvp,Coding
+mvvm,Coding
+clean code,Coding
+refactor,Coding
+documentation,Coding
+comment,Coding
+commit,Coding
+branch,Coding
+merge,Coding
+pull request,Coding
+review,Coding
+issue,Coding
+bug,Coding
+feature,Coding
+sprint,Coding
+agile,Coding
+scrum,Coding
+kanban,Coding
+notebook,Coding
+project,Coding
+task,Coding
+deadline,Coding
+stack,Coding
+heap,Coding
+json,Coding
+api key,Coding
+env,Coding
+birthday,Personal
+plan,Personal
+journal,Personal
+schedule,Personal
+reminder,Personal
+feelings,Personal
+diary,Personal
+mood,Personal
+goals,Personal
+routine,Personal
+habit,Personal
+health,Personal
+diet,Personal
+sleep,Personal
+exercise,Personal
+workout,Personal
+motivation,Personal
+family,Personal
+friends,Personal
+relationship,Personal
+love,Personal
+memory,Personal
+dream,Personal
+travel,Personal
+vacation,Personal
+shopping,Personal
+wishlist,Personal
+recipe,Personal
+home,Personal
+rent,Personal
+budget,Personal
+finance,Personal
+savings,Personal
+spending,Personal
+appointment,Personal
+meeting,Personal
+party,Personal
+celebration,Personal
+anniversary,Personal
+gift,Personal
+plan,Personal
+photo,Personal
+video,Personal
+music,Personal
+book,Personal
+movie,Personal
+quote,Personal
+thought,Personal
+idea,Personal
+project,Personal
+task,Personal
+cleaning,Personal
+laundry,Personal
+dinner,Personal
+breakfast,Personal
+lunch,Personal
+snacks,Personal
+coffee,Personal
+tea,Personal
+cake,Personal
+holiday,Personal
+weekend,Personal
+relax,Personal
+meditation,Personal
+stress,Personal
+happiness,Personal
+health check,Personal
+doctor,Personal
+family time,Personal
+walk,Personal
+hike,Personal
+beach,Personal
+mountain,Personal
+sunset,Personal
+sunrise,Personal
+park,Personal
+bike,Personal
+dance,Personal
+photo album,Personal
+vacation plan,Personal
+event,Personal
+invite,Personal
+ticket,Personal
+reservation,Personal
+passport,Personal
+flight,Personal
+train,Personal
+bus,Personal
+hotel,Personal
+itinerary,Personal
+duration,Personal
+packing list,Personal
+weather,Personal
+budget plan,Personal
+expenses,Personal
+income,Personal
+saving tips,Personal
+diet chart,Personal
+exercise plan,Personal
+goal setting,Personal
+task list,Personal
+priority,Personal
+reminder,Personal
+alarm,Personal
+notes,Personal
+today,Personal
+tomorrow,Personal
+yesterday,Personal
+memory,Personal
+favorite,Personal
+habit tracker,Personal
+journal,Personal
+reflection,Personal
+weekly plan,Personal
+monthly plan,Personal
+yearly goals,Personal
+achievement,Personal
+challenge,Personal
+inspiration,Personal
+motivate,Personal
+self care,Personal
+gratitude,Personal
+goal,Personal
+dream,Personal
+plan ahead,Personal
+notes,Personal
+personal diary,Personal
+weekly goals,Personal
+daily routine,Personal
+affirmation,Personal
+thoughts,Personal
+ideas,Personal
+future plan,Personal
+see friend,Personal
+visit family,Personal
+call mom,Personal
+call dad,Personal
+mother,Family
+father,Family
+sister,Family
+brother,Family
+parents,Family
+family trip,Family
+reunion,Family
+home,Family
+kids,Family
+son,Family
+daughter,Family
+grandpa,Family
+grandma,Family
+uncle,Family
+aunt,Family
+cousin,Family
+parents day,Family
+birthday,Family
+anniversary,Family
+gathering,Family
+dinner,Family
+lunch,Family
+breakfast,Family
+vacation,Family
+holiday,Family
+event,Family
+family plan,Family
+shopping,Family
+homework,Family
+school,Family
+college,Family
+celebration,Family
+party,Family
+photos,Family
+video,Family
+memories,Family
+gift,Family
+house,Family
+garden,Family
+pets,Family
+neighbors,Family
+siblings,Family
+cooking,Family
+trip plan,Family
+tickets,Family
+flight,Family
+hotel,Family
+reservation,Family
+beach,Family
+mountain,Family
+park,Family
+outing,Family
+shopping list,Family
+budget,Family
+expenses,Family
+family budget,Family
+health,Family
+doctor appointment,Family
+medicine,Family
+school event,Family
+camp,Family
+project,Family
+home event,Family
+family dinner,Family
+weekend plan,Family
+meeting,Family
+discuss,Family
+visit,Family
+guest,Family
+sleepover,Family
+picnic,Family
+movie night,Family
+game night,Family
+home chore,Family
+garden work,Family
+cleaning,Family
+repair,Family
+birthday cake,Family
+gift wrap,Family
+game,Family
+board game,Family
+card game,Family
+family check,Family
+call,Family
+message,Family
+love,Family
+care,Family
+group photo,Family
+memory book,Family
+scrapbook,Family
+recipe,Family
+family tradition,Family
+festival,Family
+holiday plan,Family
+summer holiday,Family
+winter holiday,Family
+school pickup,Family
+bus stop,Family
+drive,Family
+trip photos,Family
+travel insurance,Family
+tickets,Family
+flight plan,Family
+hotel booking,Family
+family goals,Family
+health check,Family
+fitness,Family
+walk,Family
+hike,Family
+camping,Family
+outing,Family
+family meeting,Family
+recipes,Family
+task list,Family
+chores,Family
+week plan,Family
+daily schedule,Family
+todo,Checklist
+task,Checklist
+list,Checklist
+grocery,Checklist
+shopping,Checklist
+buy,Checklist
+milk,Checklist
+eggs,Checklist
+bread,Checklist
+fruits,Checklist
+vegetables,Checklist
+water,Checklist
+juice,Checklist
+medicine,Checklist
+cleaning,Checklist
+laundry,Checklist
+schedule,Checklist
+reminder,Checklist
+pack,Checklist
+trip,Checklist
+vacation list,Checklist
+workout plan,Checklist
+exercise list,Checklist
+shopping list,Checklist
+holiday list,Checklist
+movie list,Checklist
+books to read,Checklist
+buy shoes,Checklist
+buy jacket,Checklist
+buy gift,Checklist
+office supplies,Checklist
+meeting agenda,Checklist
+project tasks,Checklist
+deadline,Checklist
+priority,Checklist
+email list,Checklist
+call list,Checklist
+number list,Checklist
+appointment list,Checklist
+doctor visit list,Checklist
+repair list,Checklist
+home repairs,Checklist
+garden chores,Checklist
+pets list,Checklist
+read list,Checklist
+watch list,Checklist
+upload list,Checklist
+download list,Checklist
+install list,Checklist
+uninstall list,Checklist
+update list,Checklist
+backup list,Checklist
+check list,Checklist
+verify list,Checklist
+pack list,Checklist
+unpack list,Checklist
+travel items,Checklist
+passport check,Checklist
+flight check,Checklist
+hotel check,Checklist
+budget list,Checklist
+expense list,Checklist
+income list,Checklist
+finance list,Checklist
+weekly list,Checklist
+monthly list,Checklist
+daily list,Checklist
+career list,Checklist
+study list,Checklist
+exam list,Checklist
+notes list,Checklist
+important list,Checklist
+urgent list,Checklist
+completed list,Checklist
+pending list,Checklist
+planned list,Checklist
+schedule list,Checklist
+check tasks,Checklist
+todo today,Checklist
+todo tomorrow,Checklist
+plan ahead,Checklist
+update checklist,Checklist
+remove done,Checklist
+add new,Checklist
+check done,Checklist
+cross off,Checklist
+bullet list,Checklist
+priority list,Checklist
+urgent tasks,Checklist
+reminders,Checklist
+events list,Checklist
+birthday list,Checklist
+anniversary list,Checklist
+guest list,Checklist
+grocery items,Checklist
+home chores,Checklist
+clean list,Checklist
+repair tasks,Checklist
+garden tasks,Checklist
+family tasks,Checklist
+work tasks,Checklist
+office tasks,Checklist
+school tasks,Checklist
+college tasks,Checklist
+project list,Checklist
+coding TODO,Checklist
+home TODO,Checklist
+project,Work
+meeting,Work
+deadline,Work
+task,Work
+priority,Work
+report,Work
+email,Work
+team,Work
+discussion,Work
+client,Work
+office,Work
+goal,Work
+milestone,Work
+plan,Work
+agenda,Work
+presentation,Work
+review,Work
+code review,Work
+feature,Work
+bug,Work
+fix,Work
+release,Work
+deploy,Work
+server,Work
+database,Work
+api,Work
+design,Work
+architecture,Work
+documentation,Work
+handover,Work
+feedback,Work
+sprint,Work
+kanban,Work
+scrum,Work
+standup,Work
+demo,Work
+QA,Work
+test,Work
+verification,Work
+validation,Work
+strategy,Work
+documentation,Work
+notes,Work
+call,Work
+conference,Work
+appointment,Work
+task list,Work
+follow up,Work
+team meet,Work
+project plan,Work
+roadmap,Work
+objective,Work
+key result,Work
+okr,Work
+issue,Work
+ticket,Work
+priority fix,Work
+urgent,Work
+blocker,Work
+team assign,Work
+role,Work
+responsibility,Work
+meeting agenda,Work
+minutes,Work
+status update,Work
+client email,Work
+technical,Work
+design doc,Work
+architecture,Work
+database schema,Work
+update,Work
+release plan,Work
+version control,Work
+github,Work
+bitbucket,Work
+jira,Work
+confluence,Work
+deployment,Work
+production,Work
+staging,Work
+integration,Work
+unit test,Work
+system test,Work
+feature flag,Work
+rollback,Work
+patch,Work
+ticket update,Work
+meeting notes,Work
+task progress,Work
+timeline,Work
+resource,Work
+planning,Work
+budget,Work
+finance,Work
+team lunch,Work
+office holiday,Work
+review session,Work
+training,Work
+onboarding,Work
+offboarding,Work
+work travel,Work
+project kickoff,Work
+client meet,Work
+exam,Study
+homework,Study
+assignment,Study
+lecture,Study
+class,Study
+notes,Study
+revision,Study
+practice,Study
+textbook,Study
+chapter,Study
+topic,Study
+quiz,Study
+score,Study
+grade,Study
+study plan,Study
+schedule,Study
+question,Study
+answer,Study
+solution,Study
+review,Study
+understand,Study
+topic list,Study
+learning,Study
+tutorial,Study
+exercise,Study
+example,Study
+reference,Study
+summary,Study
+concept,Study
+definition,Study
+formula,Study
+proof,Study
+diagram,Study
+read,Study
+write,Study
+solve,Study
+analyze,Study
+compare,Study
+contrast,Study
+notes list,Study
+important,Study
+keywords,Study
+topic outline,Study
+exam prep,Study
+mock test,Study
+past questions,Study
+study group,Study
+teach,Study
+explain,Study
+understand concept,Study
+practice test,Study
+solve problem,Study
+word problem,Study
+application,Study
+review session,Study
+test schedule,Study
+exam date,Study
+results,Study
+performance,Study
+study notes,Study
+research,Study
+write essay,Study
+presentation,Study
+project,Study
+topic map,Study
+chapter summary,Study
+problem set,Study
+student,Study
+teacher,Study
+guide,Study
+exam strategy,Study
+revision schedule,Study
+flashcards,Study
+mindmap,Study
+concept map,Study
+topic build,Study
+learning plan,Study
+session notes,Study
+homework schedule,Study
+study goals,Study
+time table,Study
+topic priority,Study
+exam guidelines,Study
+sample paper,Study
+solve questions,Study
+topic test,Study
+review notes,Study
+clarify,Study
+understand deeply,Study
+practice daily,Study
+destination,Travel
+ticket,Travel
+flight,Travel
+train,Travel
+hotel,Travel
+booking,Travel
+tour,Travel
+trip,Travel
+package,Travel
+itinerary,Travel
+budget,Travel
+passport,Travel
+visa,Travel
+luggage,Travel
+packing,Travel
+map,Travel
+guide,Travel
+sightseeing,Travel
+tourist,Travel
+reservation,Travel
+arrival,Travel
+departure,Travel
+transport,Travel
+bus,Travel
+taxi,Travel
+uber,Travel
+rental,Travel
+car,Travel
+flight schedule,Travel
+hotel list,Travel
+trip cost,Travel
+travel tips,Travel
+beach,Travel
+mountains,Travel
+explore,Travel
+adventure,Travel
+camping,Travel
+hike,Travel
+walk,Travel
+restaurant,Travel
+food,Travel
+dinner,Travel
+lunch,Travel
+breakfast,Travel
+local culture,Travel
+museum,Travel
+gallery,Travel
+trip photos,Travel
+video,Travel
+memory,Travel
+holiday,Travel
+vacation,Travel
+travel plan,Travel
+travel list,Travel
+insurance,Travel
+tour plan,Travel
+ticket price,Travel
+discount,Travel
+train ticket,Travel
+bus ticket,Travel
+flight boarding,Travel
+luggage check,Travel
+travel budget,Travel
+trip updates,Travel
+seat reservation,Travel
+hotel rating,Travel
+room,Travel
+suite,Travel
+travel goal,Travel
+trip date,Travel
+travel date,Travel
+hotel booking,Travel
+trip checklist,Travel
+important docs,Travel
+travel guide,Travel
+local food,Travel
+market,Travel
+transport schedule,Travel
+road trip,Travel
+car rental,Travel
+airport,Travel
+station,Travel
+tourist spots,Travel
+tour guide,Travel
+trip timing,Travel
+flight terminals,Travel
+travel notes,Travel
+trip summary,Travel
+income,Finance
+expense,Finance
+budget,Finance
+savings,Finance
+spending,Finance
+bank,Finance
+account,Finance
+loan,Finance
+debt,Finance
+credit,Finance
+debit,Finance
+interest,Finance
+investment,Finance
+stock,Finance
+mutual fund,Finance
+portfolio,Finance
+retirement,Finance
+tax,Finance
+bills,Finance
+payment,Finance
+salary,Finance
+payroll,Finance
+receipt,Finance
+invoice,Finance
+balance,Finance
+ledger,Finance
+profit,Finance
+loss,Finance
+financial plan,Finance
+cash,Finance
+credit card,Finance
+finance goal,Finance
+emergency fund,Finance
+rent,Finance
+utilities,Finance
+insurance,Finance
+policy,Finance
+fund,Finance
+bond,Finance
+dividend,Finance
+equity,Finance
+market,Finance
+exchange,Finance
+rate,Finance
+currency,Finance
+transaction,Finance
+fee,Finance
+fine,Finance
+budget list,Finance
+monthly budget,Finance
+yearly plan,Finance
+expense report,Finance
+finance notes,Finance
+bank visit,Finance
+atm,Finance
+loan payment,Finance
+interest rate,Finance
+saving account,Finance
+investment plan,Finance
+portfolio review,Finance
+tax return,Finance
+refund,Finance
+audit,Finance
+credit score,Finance
+credit report,Finance
+loan request,Finance
+deposit,Finance
+withdraw,Finance
+wallet,Finance
+mobile pay,Finance
+online payment,Finance
+bill due,Finance
+due date,Finance
+late fee,Finance
+balance update,Finance
+profit margin,Finance
+capital,Finance
+equity share,Finance
+trade,Finance
+stock price,Finance
+fundamental,Finance
+analysis,Finance
+finance strategy,Finance
+insurance claim,Finance
+mortgage,Finance
+rent payment,Finance
+bill payment,Finance
+investment portfolio,Finance
+risk,Finance
+return,Finance
+finance goals,Finance
+diet,Health
+exercise,Health
+workout,Health
+fitness,Health
+health check,Health
+doctor,Health
+appointment,Health
+medicine,Health
+symptom,Health
+treatment,Health
+health plan,Health
+nutrition,Health
+calories,Health
+weight loss,Health
+weight gain,Health
+sleep,Health
+mental health,Health
+stress,Health
+yoga,Health
+walk,Health
+run,Health
+gym,Health
+training,Health
+cardio,Health
+strength,Health
+mobility,Health
+rehab,Health
+checkup,Health
+vaccination,Health
+blood test,Health
+pulse,Health
+blood pressure,Health
+health notes,Health
+goal,Health
+wellness,Health
+healthy habits,Health
+meal plan,Health
+water intake,Health
+vitamins,Health
+supplements,Health
+health diary,Health
+exercise list,Health
+weekly plan,Health
+monthly check,Health
+fitness tracker,Health
+steps,Health
+heart rate,Health
+diet chart,Health
+body mass,Health
+body fat,Health
+exercise day,Health
+workout schedule,Health
+rest day,Health
+activity,Health
+energy,Health
+nutrients,Health
+breakfast,Health
+lunch,Health
+dinner,Health
+snacks,Health
+protein,Health
+carbs,Health
+sugar,Health
+cholesterol,Health
+healthy recipes,Health
+vegetables,Health
+fruits,Health
+health goals,Health
+habit,Health
+motivation,Health
+health record,Health
+symptom tracker,Health
+medication list,Health
+appointment list,Health
+doctor notes,Health
+check change,Health
+sleep tracker,Health
+exercise tracker,Health
+fitness progress,Health
+weight tracker,Health
+health update,Health
