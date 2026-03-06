@@ -11,6 +11,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import sqlite3
 from werkzeug.utils import secure_filename
 from fileinput import filename
+import pickle
 
 UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
@@ -48,6 +49,7 @@ def init_db():
     )
     ''')
     cur.execute('''CREATE TABLE user_profile(id INTEGER  PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE, dob TEXT, mobile TEXT, photo_path TEXT, secret_key TEXT, bio TEXT, FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE )''')
+    cur.execute('ALTER TABLE notebook ADD COLUMN category TEXT DEFAULT NULL')
 
     conn.commit()
     conn.close()
@@ -679,9 +681,69 @@ def profile_dashboard():
 
     if not result:
         return jsonify({"message": "user not found"})
-
+ 
     return jsonify(dict(result))
-                
+
+
+
+
+# ---------------- Load models once ---------------- 
+with open("tfidf_vectorizer.pkl", "rb") as f:
+    vectorizer = pickle.load(f)
+
+with open("category_model.pkl", "rb") as f:
+    model = pickle.load(f)
+
+with open("label_encoder.pkl", "rb") as f:
+    le = pickle.load(f)
+
+# ---------------- Predict Function ---------------- #
+def predict_category(text):
+    vec = vectorizer.transform([text])
+    pred = model.predict(vec)
+    category = le.inverse_transform(pred)
+    return category[0]
+
+# ---------------- API Route ---------------- #
+@app.route('/assign_category/<int:note_id>', methods=['PUT'])
+def assign_category(note_id):
+
+    if not session.get('user_id'):
+        return jsonify({"message": "Login required"}), 401
+
+    user_id = session['user_id']
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    # Fetch the note
+    note = cur.execute(
+        "SELECT title, content FROM notebook WHERE id=? AND user_id=?",
+        (note_id, user_id)
+    ).fetchone()
+
+    if not note:
+        conn.close()
+        return jsonify({"message": "Note not found"}), 404
+
+    # Combine title + content for prediction
+    text = f"{note['title']} {note['content']}"
+    category = predict_category(text)
+
+    # Update the category in DB
+    cur.execute(
+        "UPDATE notebook SET category=? WHERE id=? AND user_id=?",
+        (category, note_id, user_id)
+    )
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "message": "Category assigned",
+        "category": category
+    })                
+                                                
 scheduler = BackgroundScheduler()
 scheduler.add_job(delete_old_users, 'interval', hours=24)
 scheduler.start()
