@@ -12,11 +12,16 @@ import sqlite3
 from werkzeug.utils import secure_filename
 from fileinput import filename
 import pickle
-
+from flask_cors import CORS
 UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
-app.secret_key = "ashokkumaryadav"
-
+CORS(app, resources={r"/*": {"origins": "http://localhost:63342"}}, supports_credentials=True)
+#app.secret_key = "ashokkumaryadav"
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True
+)
 
 # ---------------- DATABASE INIT ---------------- #
 
@@ -48,7 +53,7 @@ def init_db():
         FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE
     )
     ''')
-    cur.execute('''CREATE TABLE user_profile(id INTEGER  PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE, dob TEXT, mobile TEXT, photo_path TEXT, secret_key TEXT, bio TEXT, FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE )''')
+    cur.execute('''CREATE TABLE IF NOT EXISTS user_profile(id INTEGER  PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE, dob TEXT, mobile TEXT, photo_path TEXT, secret_key TEXT, bio TEXT, FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE )''')
     cur.execute('ALTER TABLE notebook ADD COLUMN category TEXT DEFAULT NULL')
 
     conn.commit()
@@ -60,9 +65,31 @@ init_db()
 
 # ---------------- HOME ---------------- #
 
-@app.route('/', methods=['GET'])
-def home():
-    return jsonify({"message": "Welcome to Notebook API"})
+
+@app.route('/profile', methods=['GET'])
+def profile():
+    # 1️⃣ Check if user is logged in
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"message": "Login required"}), 401
+
+    # 2️⃣ Connect to DB
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row  # So we can convert row to dict
+    cur = conn.cursor()
+
+    # 3️⃣ Fetch user data
+    user = cur.execute(
+        "SELECT id, name, email, dob FROM user WHERE id=?",
+        (user_id,)
+    ).fetchone()
+
+    conn.close()
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    return jsonify(dict(user))
 
 
 # ---------------- SIGNUP ---------------- #
@@ -688,13 +715,13 @@ def profile_dashboard():
 
 
 # ---------------- Load models once ---------------- 
-with open("tfidf_vectorizer.pkl", "rb") as f:
+with open("Models/tfidf_vectorizer.pkl", "rb") as f:
     vectorizer = pickle.load(f)
 
-with open("category_model.pkl", "rb") as f:
+with open("Models/category_model.pkl", "rb") as f:
     model = pickle.load(f)
 
-with open("label_encoder.pkl", "rb") as f:
+with open("Models/label_encoder.pkl", "rb") as f:
     le = pickle.load(f)
 
 # ---------------- Predict Function ---------------- #
