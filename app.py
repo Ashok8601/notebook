@@ -1,146 +1,546 @@
-import os.path
-import shutil
 from datetime import datetime
+from flask import Flask, jsonify, request, session,send_file
+from reportlab.pdfgen import canvas
+from docx import Document
+import os.path
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from werkzeug.security import generate_password_hash, check_password_hash
+from apscheduler.schedulers.background import BackgroundScheduler
+import sqlite3
+from werkzeug.utils import secure_filename
 from fileinput import filename
 
-from flask import Flask,jsonify,request,session
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-
-app=Flask(__name__)
-app.secret_key="ashokkumaryadav"
-import sqlite3
-
 UPLOAD_FOLDER = 'uploads'
-conn=sqlite3.connect('notebook.db')
-conn.row_factory=sqlite3.Row
-cur=conn.cursor()
-cur.execute('''CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY AUTOINCREMENT ,name TEXT, email TEXT NOT NULL UNIQUE , password TEXT NOT NULL,dob TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)''')
-cur.execute('''CREATE TABLE IF NOT EXISTS notebook (id INTEGER PRIMARY KEY AUTOINCREMENT ,title TEXT DEFAULT 'new_notebook', content TEXT ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP,user_id INTEGER ,FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE)''')
-cur.execute('''CREATE TABLE user_profile(id INTEGER  PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE, dob TEXT, mobile TEXT, photo_path TEXT, secret_key TEXT, bio TEXT, FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE )''')
-#cur.execute('ALTER TABLE user ADD COLUMN delete_request_at DATETIME')
-#cur.execute('ALTER TABLE user ADD COLUMN is_deleted INTEGER DEFAULT 0')
-conn.commit()
-conn.close()
-@app.route('/',methods=['GET'])
+app = Flask(__name__)
+app.secret_key = "ashokkumaryadav"
+
+
+# ---------------- DATABASE INIT ---------------- #
+
+def init_db():
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS user(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        email TEXT UNIQUE,
+        password TEXT,
+        dob TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        delete_request_at DATETIME,
+        is_deleted INTEGER DEFAULT 0
+    )
+    ''')
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS notebook(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT DEFAULT 'new_notebook',
+        content TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        user_id INTEGER,
+        is_deleted INTEGER DEFAULT 0,
+        FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE
+    )
+    ''')
+    cur.execute('''CREATE TABLE user_profile(id INTEGER  PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE, dob TEXT, mobile TEXT, photo_path TEXT, secret_key TEXT, bio TEXT, FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE )''')
+
+    conn.commit()
+    conn.close()
+
+
+init_db()
+
+
+# ---------------- HOME ---------------- #
+
+@app.route('/', methods=['GET'])
 def home():
-    return jsonify({"message":"welcome to the notebook app"})
-@app.route('/signup',methods=['POST'])
+    return jsonify({"message": "Welcome to Notebook API"})
+
+
+# ---------------- SIGNUP ---------------- #
+
+@app.route('/signup', methods=['POST'])
 def signup():
-    data=request.get_json()
-    name=data['name']
-    email=data['email']
-    password=data['password']
-    dob=data['dob']
+    data = request.get_json()
+
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+    dob = data.get('dob')
+
     if not name or not email or not password:
-        return jsonify({"message":"please fill all fields"})
-    hashed_password=generate_password_hash(password)
-    conn=sqlite3.connect('notebook.db')
-    conn.row_factory=sqlite3.Row
-    cur=conn.cursor()
-    cur.execute('''INSERT INTO user(name,email,password,dob,created_at)VALUES(?,?,?,?,?)''',(name,email,hashed_password,dob,datetime.now()))
-    conn.commit()
-    conn.close()
-    return jsonify({"message":"user created successfully"})
+        return jsonify({"message": "All fields required"}), 400
 
-@app.route('/login',methods=['POST'])
+    hashed = generate_password_hash(password)
+
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    try:
+        cur.execute(
+            "INSERT INTO user(name,email,password,dob) VALUES(?,?,?,?)",
+            (name, email, hashed, dob)
+        )
+        conn.commit()
+    except:
+        return jsonify({"message": "Email already exists"}), 400
+
+    conn.close()
+
+    return jsonify({"message": "User created"})
+
+
+# ---------------- LOGIN ---------------- #
+
+@app.route('/login', methods=['POST'])
 def login():
-    data=request.get_json()
-    email=data['email']
-    password=data['password']
-    if not email or not password:
-        return jsonify({"message":"please fill all fields"})
-    conn=sqlite3.connect('notebook.db')
-    conn.row_factory=sqlite3.Row
-    cur=conn.cursor()
-    users=cur.execute('''SELECT * FROM user WHERE email=?''',(email,)).fetchone()
-    if not users:
-        return jsonify({"message":"user not found"})
-    if not check_password_hash(users['password'],password):
-        return jsonify({"message":"wrong password"})
-    session['user_id']=users['id']
+
+    data = request.get_json()
+
+    email = data.get('email')
+    password = data.get('password')
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    user = cur.execute(
+        "SELECT * FROM user WHERE email=?",
+        (email,)
+    ).fetchone()
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    if not check_password_hash(user['password'], password):
+        return jsonify({"message": "Wrong password"}), 401
+
+    if user['is_deleted'] == 1:
+        return jsonify({"message": "Account scheduled for deletion. Recover within 30 days."})
+
+    session['user_id'] = user['id']
+
     conn.close()
 
-    return jsonify({"message":"login successful"})
+    return jsonify({"message": "Login successful"})
 
-@app.route('/create_notebook',methods=['POST'])
-def create_notebook():
+
+# ---------------- CREATE NOTE ---------------- #
+
+@app.route('/create_note', methods=['POST'])
+def create_note():
+
     if not session.get('user_id'):
-        return jsonify({"message":"login required"})
-    id=session['user_id']
-    data=request.get_json()
-    title=data['title']
-    content=data['content']
-    conn=sqlite3.connect('notebook.db')
-    conn.row_factory=sqlite3.Row
-    cur=conn.cursor()
-    cur.execute('INSERT INTO notebook (title,content,user_id) VALUES(?,?,?)',(title,content,id))
+        return jsonify({"message": "Login required"}), 401
+
+    data = request.get_json()
+
+    title = data.get('title')
+    content = data.get('content')
+
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    cur.execute(
+        "INSERT INTO notebook(title,content,user_id) VALUES(?,?,?)",
+        (title, content, session['user_id'])
+    )
+
     conn.commit()
     conn.close()
-    return jsonify({"message":"notebook created successfully"})
-@app.route('/show_notebook',methods=['GET'])
-def show_notebook():
+
+    return jsonify({"message": "Note created"})
+
+
+# ---------------- SHOW NOTES ---------------- #
+
+@app.route('/notes', methods=['GET'])
+def show_notes():
+
     if not session.get('user_id'):
-        return jsonify({"message":"login required"})
-    id=session.get('user_id')
-    conn=sqlite3.connect('notebook.db')
-    conn.row_factory=sqlite3.Row
-    cur=conn.cursor()
-    notebooks=cur.execute('''SELECT * FROM notebook WHERE user_id =(?)''',(id,)).fetchall()
-    if not notebooks:
-        return jsonify({"message":"notebook not found"})
-    data=[dict(row) for row in notebooks]
-    return jsonify({"data":data})
-@app.route('/update_notebook/<int:id>',methods=['PUT'])
-def update_notebook(id):
+        return jsonify({"message": "Login required"}), 401
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    notes = cur.execute(
+        "SELECT * FROM notebook WHERE user_id=? AND is_deleted=0",
+        (session['user_id'],)
+    ).fetchall()
+
+    conn.close()
+
+    data = [dict(row) for row in notes]
+
+    return jsonify({"notes": data})
+
+
+# ---------------- UPDATE NOTE ---------------- #
+
+@app.route('/update_note/<int:id>', methods=['PUT'])
+def update_note(id):
+
     if not session.get('user_id'):
-        return jsonify({"message":"login required"})
-    user_id=session.get('user_id')
-    data=request.get_json()
-    title=data['title']
-    content=data['content']
-    conn=sqlite3.connect('notebook.db')
-    conn.row_factory=sqlite3.Row
-    cur=conn.cursor()
-    cur.execute('UPDATE notebook SET title=?,content=? WHERE id=? AND user_id =?',(title,content,id,user_id))
+        return jsonify({"message": "Login required"}), 401
+
+    data = request.get_json()
+
+    title = data.get('title')
+    content = data.get('content')
+
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    cur.execute(
+        "UPDATE notebook SET title=?,content=? WHERE id=? AND user_id=?",
+        (title, content, id, session['user_id'])
+    )
+
     conn.commit()
     conn.close()
-    return jsonify({"message":"notebook updated successfully"})
 
-@app.route('/delete_notebook/<int:id>',methods=['DELETE'])
-def delete_notebook(id):
+    return jsonify({"message": "Note updated"})
+
+
+# ---------------- MOVE TO TRASH ---------------- #
+
+@app.route('/move_to_trash/<int:id>', methods=['PUT'])
+def move_to_trash(id):
+
     if not session.get('user_id'):
-        return jsonify({"message":"login required"})
-    user_id=session.get('user_id')
-    conn=sqlite3.connect('notebook.db')
-    cur=conn.cursor()
-    cur.execute('DELETE FROM notebook WHERE id=? AND user_id =?',(id,user_id))
+        return jsonify({"message": "Login required"}), 401
+
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    cur.execute(
+        "UPDATE notebook SET is_deleted=1 WHERE id=? AND user_id=?",
+        (id, session['user_id'])
+    )
+
     conn.commit()
     conn.close()
-    return jsonify({"message":"notebook deleted successfully"})
 
-@app.route('/delete_user/<int:id>',methods=['POST'])
-def delete_account(id):
+    return jsonify({"message": "Moved to trash"})
+
+
+# ---------------- TRASH NOTES ---------------- #
+
+@app.route('/trash', methods=['GET'])
+def trash():
+
     if not session.get('user_id'):
-        return jsonify({"message":"login required"})
-    user_id=session.get('user_id')
-    conn=sqlite3.connect('notebook.db')
-    cur=conn.cursor()
-    cur.execute('UPDATE user SET delete_request_at =? ,is_deleted_at=1',(datatime.now(),user_id))
+        return jsonify({"message": "Login required"}), 401
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    notes = cur.execute(
+        "SELECT * FROM notebook WHERE user_id=? AND is_deleted=1",
+        (session['user_id'],)
+    ).fetchall()
+
+    conn.close()
+
+    data = [dict(row) for row in notes]
+
+    return jsonify({"trash": data})
+
+
+# ---------------- RESTORE NOTE ---------------- #
+
+@app.route('/restore_note/<int:id>', methods=['PUT'])
+def restore_note(id):
+
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    cur.execute(
+        "UPDATE notebook SET is_deleted=0 WHERE id=? AND user_id=?",
+        (id, session['user_id'])
+    )
+
     conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Note restored"})
+
+
+# ---------------- SEARCH ---------------- #
+
+@app.route('/search', methods=['POST'])
+def search():
+
+    if not session.get('user_id'):
+        return jsonify({"message": "Login required"}), 401
+
+    query = request.json.get('query')
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    notes = cur.execute("""
+    SELECT * FROM notebook
+    WHERE user_id=? AND is_deleted=0
+    AND (title LIKE ? OR content LIKE ?)
+    """, (
+        session['user_id'],
+        '%' + query + '%',
+        '%' + query + '%'
+    )).fetchall()
+
+    conn.close()
+
+    result = [dict(row) for row in notes]
+
+    return jsonify({"results": result})
+
+
+# ---------------- FILTER ---------------- #
+
+@app.route('/filter', methods=['POST'])
+def filter_notes():
+
+    method = request.json.get('method')
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    if method == "latest":
+        query = "ORDER BY created_at DESC"
+
+    elif method == "oldest":
+        query = "ORDER BY created_at ASC"
+
+    elif method == "title":
+        query = "ORDER BY title ASC"
+
+    else:
+        return jsonify({"message": "Invalid method"})
+
+    notes = cur.execute(
+        f"SELECT * FROM notebook WHERE user_id=? AND is_deleted=0 {query}",
+        (session['user_id'],)
+    ).fetchall()
+
+    conn.close()
+
+    result = [dict(row) for row in notes]
+
+    return jsonify({"notes": result})
+
+
+# ---------------- DELETE ACCOUNT REQUEST ---------------- #
+
+@app.route('/delete_account', methods=['POST'])
+def delete_account():
+
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    cur.execute(
+        "UPDATE user SET is_deleted=1,delete_request_at=? WHERE id=?",
+        (datetime.now(), session['user_id'])
+    )
+
+    conn.commit()
+    conn.close()
+
     session.clear()
-    conn.close()
-    return jsonify({"message":"Your will be deleted in next 30 days if you want to recover account you can do within 30 days "})
 
-@app.route('/delete_account/<int:id>',methods=['DELETE'])
-def delete_account(id):
+    return jsonify({"message": "Account will be deleted after 30 days"})
+
+
+# ---------------- RECOVER ACCOUNT ---------------- #
+
+@app.route('/recover_account', methods=['POST'])
+def recover_account():
+
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    user = cur.execute(
+        "SELECT * FROM user WHERE email=?",
+        (email,)
+    ).fetchone()
+
+    if not user:
+        return jsonify({"message": "User not found"})
+
+    if not check_password_hash(user['password'], password):
+        return jsonify({"message": "Wrong password"})
+
+    cur.execute(
+        "UPDATE user SET is_deleted=0,delete_request_at=NULL WHERE email=?",
+        (email,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Account recovered"})
+
+
+# ---------------- AUTO DELETE AFTER 30 DAYS ---------------- #
+
+def delete_old_users():
+
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    cur.execute("""
+    DELETE FROM user
+    WHERE is_deleted=1
+    AND delete_request_at <= datetime('now','-30 days')
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+
+@app.route('/export_note/<int:id>', methods=['GET'])
+def export_note(id):
+
     if not session.get('user_id'):
         return jsonify({"message":"login required"})
-    user_id=session.get('user_id')
-    conn=sqlite3.connect('notebook.db')
-    cur=conn.cursor()
-    cur.execute('DELETE FROM user WHERE id=?',(user_id,))
 
+    user_id = session['user_id']
+
+    filetype = request.args.get("type")   # pdf / docx
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    note = cur.execute(
+        "SELECT * FROM notebook WHERE id=? AND user_id=?",
+        (id,user_id)
+    ).fetchone()
+
+    conn.close()
+
+    if not note:
+        return jsonify({"message":"note not found"})
+
+    title = note['title']
+    content = note['content']
+
+    os.makedirs("exports", exist_ok=True)
+
+    # -------- PDF EXPORT -------- #
+
+    if filetype == "pdf":
+
+        filepath = f"exports/{title}.pdf"
+
+        c = canvas.Canvas(filepath)
+        c.setFont("Helvetica",12)
+
+        y = 800
+        for line in content.split("\n"):
+            c.drawString(50,y,line)
+            y -= 20
+
+        c.save()
+
+        return send_file(filepath, as_attachment=True)
+
+
+    # -------- DOCX EXPORT -------- #
+
+    elif filetype == "docx":
+
+        filepath = f"exports/{title}.docx"
+
+        doc = Document()
+        doc.add_heading(title, level=1)
+        doc.add_paragraph(content)
+
+        doc.save(filepath)
+
+        return send_file(filepath, as_attachment=True)
+
+    else:
+        return jsonify({"message":"invalid file type"})
+        
+        
+@app.route('/share_note/<int:id>', methods=['POST'])
+def share_note(id):
+
+    if not session.get('user_id'):
+        return jsonify({"message":"login required"})
+
+    user_id = session['user_id']
+
+    data = request.get_json()
+    receiver_email = data['email']
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    note = cur.execute(
+        "SELECT * FROM notebook WHERE id=? AND user_id=?",
+        (id,user_id)
+    ).fetchone()
+
+    conn.close()
+
+    if not note:
+        return jsonify({"message":"note not found"})
+
+    title = note['title']
+    content = note['content']
+
+    # -------- EMAIL CONFIG -------- #
+
+    sender_email = "yourgmail@gmail.com"
+    sender_password = "your_app_password"
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = f"Shared Note: {title}"
+
+    body = f"""
+Title: {title}
+
+Content:
+{content}
+"""
+
+    msg.attach(MIMEText(body,'plain'))
+
+    try:
+
+        server = smtplib.SMTP('smtp.gmail.com',587)
+        server.starttls()
+        server.login(sender_email,sender_password)
+
+        server.send_message(msg)
+        server.quit()
+
+        return jsonify({"message":"note shared successfully via email"})
+
+    except Exception as e:
+        return jsonify({"error":str(e)})
+        
 @app.route('/update_user/<int:id>', methods=['PUT'])
 def update_account(id):
 
@@ -281,6 +681,13 @@ def profile_dashboard():
         return jsonify({"message": "user not found"})
 
     return jsonify(dict(result))
+                
+scheduler = BackgroundScheduler()
+scheduler.add_job(delete_old_users, 'interval', hours=24)
+scheduler.start()
 
-if __name__=='__main__':
+
+# ---------------- RUN SERVER ---------------- #
+
+if __name__ == "__main__":
     app.run(debug=True)
