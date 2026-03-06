@@ -1,14 +1,23 @@
+import os.path
+import shutil
 from datetime import datetime
+from fileinput import filename
+
 from flask import Flask,jsonify,request,session
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+
 app=Flask(__name__)
 app.secret_key="ashokkumaryadav"
 import sqlite3
+
+UPLOAD_FOLDER = 'uploads'
 conn=sqlite3.connect('notebook.db')
 conn.row_factory=sqlite3.Row
 cur=conn.cursor()
 cur.execute('''CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY AUTOINCREMENT ,name TEXT, email TEXT NOT NULL UNIQUE , password TEXT NOT NULL,dob TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)''')
 cur.execute('''CREATE TABLE IF NOT EXISTS notebook (id INTEGER PRIMARY KEY AUTOINCREMENT ,title TEXT DEFAULT 'new_notebook', content TEXT ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP,user_id INTEGER ,FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE)''')
+cur.execute('''CREATE TABLE user_profile(id INTEGER  PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE, dob TEXT, mobile TEXT, photo_path TEXT, secret_key TEXT, bio TEXT, FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE )''')
 #cur.execute('ALTER TABLE user ADD COLUMN delete_request_at DATETIME')
 #cur.execute('ALTER TABLE user ADD COLUMN is_deleted INTEGER DEFAULT 0')
 conn.commit()
@@ -131,6 +140,147 @@ def delete_account(id):
     conn=sqlite3.connect('notebook.db')
     cur=conn.cursor()
     cur.execute('DELETE FROM user WHERE id=?',(user_id,))
+
+@app.route('/update_user/<int:id>', methods=['PUT'])
+def update_account(id):
+
+    if not session.get('user_id'):
+        return jsonify({"message": "login required"})
+
+    user_id = session.get('user_id')
+
+    name = request.form.get('name')
+    email = request.form.get('email')
+    dob = request.form.get('dob')
+    mobile = request.form.get('mobile')
+    username = request.form.get('username')
+    secret_key = request.form.get('secret_key')
+
+    photo = request.files.get('photo')
+
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.mkdir(UPLOAD_FOLDER)
+
+    photo_path = None
+
+    if photo:
+        filename = secure_filename(photo.filename)
+        photo_path = os.path.join(UPLOAD_FOLDER, filename)
+        photo.save(photo_path)
+
+    conn = sqlite3.connect('notebook.db')
+    cur = conn.cursor()
+
+    # update user table
+    cur.execute("""
+    UPDATE user 
+    SET name=?, email=?, mobile=?, username=? 
+    WHERE id=?
+    """,(name,email,mobile,username,user_id))
+
+    # check profile exist
+    cur.execute("SELECT id FROM user_profile WHERE user_id=?", (user_id,))
+    profile = cur.fetchone()
+
+    if profile:
+        # update profile
+        cur.execute("""
+        UPDATE user_profile
+        SET dob=?, photo_path=?, secret_key=?
+        WHERE user_id=?
+        """,(dob,photo_path,secret_key,user_id))
+    else:
+        # insert profile
+        cur.execute("""
+        INSERT INTO user_profile (user_id,dob,photo_path,secret_key)
+        VALUES (?,?,?,?)
+        """,(user_id,dob,photo_path,secret_key))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message":"updated successfully"})
+
+@app.route('/update_password', methods=['PUT'])
+def update_password():
+
+    if not session.get('user_id'):
+        return jsonify({"message": "login required"})
+
+    user_id = session.get('user_id')
+
+    data = request.get_json()
+    email = data['email']
+    old_password = data['old_password']
+    new_password = data['password']
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    result = cur.execute(
+        'SELECT * FROM user WHERE id=?',
+        (user_id,)
+    ).fetchone()
+
+    if not result:
+        return jsonify({"message": "user not found"})
+
+    # email check
+    if email != result['email']:
+        return jsonify({"message": "wrong email"})
+
+    # old password check
+    if not check_password_hash(result['password'], old_password):
+        return jsonify({"message": "wrong old password"})
+
+    # new password hash
+    hashed_password = generate_password_hash(new_password)
+
+    cur.execute(
+        'UPDATE user SET password=? WHERE id=?',
+        (hashed_password, user_id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "password updated successfully"})
+
+@app.route('/profile_dashboard', methods=['GET'])
+def profile_dashboard():
+
+    if not session.get('user_id'):
+        return jsonify({"message": "login required"})
+
+    user_id = session.get('user_id')
+
+    conn = sqlite3.connect('notebook.db')
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    result = cur.execute("""
+        SELECT 
+            user.id,
+            user.email,
+            user_profile.name,
+            user_profile.mobile,
+            user_profile.username,
+            user_profile.dob,
+            user_profile.photo_path,
+            user_profile.secret_key
+        FROM user
+        LEFT JOIN user_profile
+        ON user.id = user_profile.user_id
+        WHERE user.id = ?
+    """, (user_id,)).fetchone()
+
+    conn.close()
+
+    if not result:
+        return jsonify({"message": "user not found"})
+
+    return jsonify(dict(result))
 
 if __name__=='__main__':
     app.run(debug=True)
