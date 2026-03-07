@@ -5,8 +5,8 @@ from datetime import datetime
 import sqlite3
 import os
 import time
-#from reportlab.pdfgen import canvas
-#from docx import Document
+from reportlab.pdfgen import canvas
+from docx import Document
 import random
 from flask_mail import Mail, Message
 
@@ -118,7 +118,7 @@ def login():
                 return redirect(url_for("login"))
 
             session["user_id"] = user["id"]
-            return redirect(url_for("profile"))
+            return redirect(url_for("home"))
 
         flash("Invalid email or password")
 
@@ -243,7 +243,7 @@ def move_to_trash(note_id):
     db.commit()
     db.close()
 
-    return redirect(url_for("show_notes"))
+    return redirect(url_for("trash"))
 
 
 # ---------------- TRASH PAGE ---------------- #
@@ -304,7 +304,7 @@ def search():
 
     db.close()
 
-    return render_template("notes.html", notes=notes, query=query)
+    return render_template("home.html", notes=notes, query=query)
 
 
 # ---------------- FILTER NOTES ---------------- #

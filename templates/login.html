@@ -2,34 +2,249 @@
 
 <html>
 <head>
-<title>Login</title>
+<title>Auth Page</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+overflow:hidden;
+}
+
+/* CARD */
+
+.container{
+position:relative;
+width:800px;
+height:500px;
+border-radius:15px;
+overflow:hidden;
+box-shadow:0 20px 50px rgba(0,0,0,0.3);
+}
+
+/* FORM AREA */
+
+.form-box{
+position:absolute;
+top:0;
+width:50%;
+height:100%;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+padding:40px;
+transition:0.6s;
+z-index:2;
+}
+
+/* LOGIN */
+
+.login{
+left:0;
+background:#ffffff;
+transform:translateX(-100%);
+}
+
+/* SIGNUP */
+
+.signup{
+right:0;
+background:#eef2ff;
+}
+
+/* OVERLAY */
+
+.overlay{
+position:absolute;
+top:0;
+left:0;
+width:50%;
+height:100%;
+background:linear-gradient(135deg,#6a11cb,#2575fc);
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+text-align:center;
+transition:0.6s;
+z-index:1;
+}
+
+.overlay h2{
+font-size:28px;
+margin-bottom:10px;
+}
+
+.overlay p{
+font-size:14px;
+opacity:0.9;
+}
+
+/* ANIMATION */
+
+.container.active .overlay{
+transform:translateX(100%);
+}
+
+.container.active .login{
+transform:translateX(0);
+}
+
+.container.active .signup{
+transform:translateX(100%);
+}
+
+/* INPUT */
+
+input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border:1px solid #ddd;
+border-radius:8px;
+outline:none;
+}
+
+input:focus{
+border-color:#4facfe;
+}
+
+/* BUTTON */
+
+button{
+padding:10px 20px;
+border:none;
+background:#0066ff;
+color:white;
+border-radius:8px;
+cursor:pointer;
+margin-top:10px;
+transition:0.3s;
+}
+
+button:hover{
+background:#004ecc;
+transform:scale(1.05);
+}
+
+/* LINKS */
+
+.links{
+margin-top:10px;
+text-align:center;
+}
+
+.links a{
+display:block;
+color:#0066ff;
+text-decoration:none;
+margin:4px 0;
+font-size:14px;
+}
+
+.links a:hover{
+text-decoration:underline;
+}
+
+.switch{
+margin-top:10px;
+cursor:pointer;
+color:#0066ff;
+font-size:14px;
+}
+
+</style>
+
 </head>
 <body>
 
+<div class="container" id="container">
+
+<!-- LOGIN -->
+
+<div class="form-box login">
+
 <h2>Login</h2>
 
-<form method="POST">
+<form method="POST" action="/login">
 
-<input type="email" name="email" placeholder="Email"><br><br>
+<input type="email" name="email" placeholder="Email" required>
 
-<input type="password" name="password" placeholder="Password"><br><br>
+<input type="password" name="password" placeholder="Password" required>
 
 <button type="submit">Login</button>
 
 </form>
 
-<a href="/signup">Create account</a><br> <a href="/recover_account">Recover account</a>
+<div class="links">
+<a href="/recover_account">Recover Account?</a>
+<a href="/forgot-password">Forgot password?</a>
+</div>
 
-{% with messages = get_flashed_messages() %}
-{% if messages %}
+<p class="switch" onclick="openSignup()">Create account</p>
 
-<ul>
-{% for m in messages %}
-<li>{{m}}</li>
-{% endfor %}
-</ul>
-{% endif %}
-{% endwith %}
+</div>
+
+<!-- SIGNUP -->
+
+<div class="form-box signup">
+
+<h2>Create Account</h2>
+
+<form method="POST" action="/signup">
+
+<input type="text" name="name" placeholder="Name" required>
+
+<input type="email" name="email" placeholder="Email" required>
+
+<input type="password" name="password" placeholder="Password" required>
+
+<input type="date" name="dob" required>
+
+<button type="submit">Signup</button>
+
+</form>
+
+<p class="switch" onclick="openLogin()">Already have account</p>
+
+</div>
+
+<!-- GRADIENT PANEL -->
+
+<div class="overlay">
+
+<div>
+<h2>Welcome to QuickNotes</h2>
+<p>Securely store your ideas, notes and thoughts.</p>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function openLogin(){
+document.getElementById("container").classList.add("active")
+}
+
+function openSignup(){
+document.getElementById("container").classList.remove("active")
+}
+
+</script>
 
 </body>
 </html>
