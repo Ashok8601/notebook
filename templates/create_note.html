@@ -1,26 +1,197 @@
 <!DOCTYPE html>
-
 <html>
 <head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Create Note</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6f8;
+height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+/* HEADER */
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#2c3e50;
+color:white;
+padding:14px 18px;
+}
+
+.home-btn{
+font-size:22px;
+cursor:pointer;
+}
+
+.header-title{
+font-size:18px;
+font-weight:bold;
+}
+
+.profile-icon{
+font-size:22px;
+cursor:pointer;
+}
+
+/* editor container */
+
+.editor{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+/* title */
+
+.title{
+width:100%;
+font-size:22px;
+border:none;
+outline:none;
+padding:15px;
+font-weight:bold;
+background:white;
+border-bottom:1px solid #ddd;
+}
+
+/* content */
+
+.content{
+flex:1;
+outline:none;
+padding:15px;
+font-size:16px;
+background:white;
+overflow-y:auto;
+}
+
+[contenteditable]:empty:before{
+content:attr(placeholder);
+color:#aaa;
+}
+
+/* save button */
+
+.save{
+background:#27ae60;
+color:white;
+border:none;
+padding:12px;
+font-size:16px;
+cursor:pointer;
+}
+
+/* toolbar */
+
+.toolbar{
+display:flex;
+justify-content:space-around;
+background:white;
+border-top:1px solid #ddd;
+padding:10px;
+font-size:20px;
+}
+
+.toolbar span{
+cursor:pointer;
+padding:5px 15px;
+border-radius:4px;
+}
+
+.toolbar span:active{
+background:#ddd;
+}
+
+</style>
+
 </head>
+
 <body>
 
-<h2>Create Note</h2>
+<!-- HEADER -->
 
-<form method="POST">
+<div class="header">
 
-<input type="text" name="title" placeholder="Title"><br><br>
+<div class="home-btn" onclick="location.href='/'">
+🏠
+</div>
 
-<textarea name="content" rows="8" cols="40"></textarea><br><br>
+<div class="header-title">
+QuickNotes
+</div>
 
-<button type="submit">Save Note</button>
+<div class="profile-icon" onclick="location.href='/profile'">
+👤
+</div>
+
+</div>
+
+
+<form method="POST" onsubmit="prepareContent()">
+
+<div class="editor">
+
+<input
+type="text"
+name="title"
+class="title"
+placeholder="Title"
+required
+>
+
+<div
+class="content"
+id="content"
+contenteditable="true"
+placeholder="Start writing..."
+></div>
+
+</div>
+
+<input type="hidden" name="content" id="hiddenContent">
+
+<button class="save" type="submit">
+💾 Save Note
+</button>
+
+<!-- TOOLBAR -->
+
+<div class="toolbar">
+
+<span onmousedown="event.preventDefault(); document.execCommand('bold')"><b>B</b></span>
+
+<span onmousedown="event.preventDefault(); document.execCommand('italic')"><i>I</i></span>
+
+<span onmousedown="event.preventDefault(); document.execCommand('underline')"><u>U</u></span>
+
+<span onmousedown="event.preventDefault(); document.execCommand('undo')">↶</span>
+
+<span onmousedown="event.preventDefault(); document.execCommand('redo')">↷</span>
+
+</div>
 
 </form>
 
-<br>
+<script>
 
-<a href="/notes">Back</a>
+function prepareContent(){
+
+document.getElementById("hiddenContent").value =
+document.getElementById("content").innerHTML
+
+}
+
+</script>
 
 </body>
 </html>

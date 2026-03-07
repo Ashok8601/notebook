@@ -4,11 +4,14 @@ from functools import wraps
 from datetime import datetime
 import sqlite3
 import os
-from reportlab.pdfgen import canvas
-from docx import Document
+import time
+#from reportlab.pdfgen import canvas
+#from docx import Document
+import random
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
-app.secret_key = "secret_key_here"
+app.secret_key = "ashokkumaryadav"
 
 DATABASE = "notebook.db"
 
@@ -35,11 +38,19 @@ def login_required(route_function):
 # ---------------- HOME ---------------- #
 
 @app.route("/")
+@login_required
 def home():
-    if "user_id" in session:
-        return redirect(url_for("show_notes"))
-    return redirect(url_for("login"))
 
+    db = get_db()
+
+    notes = db.execute(
+        "SELECT * FROM notebook WHERE user_id=? AND is_deleted=0 ORDER BY created_at DESC",
+        (session["user_id"],)
+    ).fetchall()
+
+    db.close()
+
+    return render_template("home.html", notes=notes)
 
 # ---------------- SIGNUP ---------------- #
 
@@ -161,13 +172,13 @@ def create_note():
         db.commit()
         db.close()
 
-        return redirect(url_for("show_notes"))
+        return redirect(url_for("home"))
 
     return render_template("create_note.html")
 
 
 # ---------------- SHOW NOTES ---------------- #
-
+'''
 @app.route("/notes")
 @login_required
 def show_notes():
@@ -183,7 +194,7 @@ def show_notes():
 
     return render_template("notes.html", notes=notes)
 
-
+'''
 # ---------------- UPDATE NOTE ---------------- #
 
 @app.route("/update_note/<int:note_id>", methods=["GET", "POST"])
@@ -194,8 +205,8 @@ def update_note(note_id):
 
     if request.method == "POST":
 
-        title = request.form.get("title")
-        content = request.form.get("content")
+        title = request.json.get("title")
+        content = request.json.get("content")
 
         db.execute(
             "UPDATE notebook SET title=?,content=? WHERE id=? AND user_id=?",
@@ -205,7 +216,7 @@ def update_note(note_id):
         db.commit()
         db.close()
 
-        return redirect(url_for("show_notes"))
+        return jsonify({"status":"saved"})
 
     note = db.execute(
         "SELECT * FROM notebook WHERE id=? AND user_id=?",
@@ -215,7 +226,6 @@ def update_note(note_id):
     db.close()
 
     return render_template("update_note.html", note=note)
-
 
 # ---------------- MOVE TO TRASH ---------------- #
 
@@ -428,6 +438,125 @@ def export_note(note_id):
     return send_file(file_path, as_attachment=True)
 
 
+
+# Configuration (Email setup)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'ashokjuriya3521@gmail.com'
+app.config['MAIL_PASSWORD'] = 'yjyn qmpf rwry uasf'
+mail = Mail(app)
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+
+    if request.method == "POST":
+
+        email = request.form.get("email")
+
+        db = get_db()
+
+        # Email existence check
+        user = db.execute(
+            "SELECT * FROM user WHERE email=?",
+            (email,)
+        ).fetchone()
+
+        if not user:
+            flash("Email not found")
+            return redirect(url_for("forgot_password"))
+
+        # Generate OTP
+        otp = str(random.randint(100000, 999999))
+
+        session['otp'] = otp
+        session['email'] = email
+        session['otp_time'] = time.time()   # store time
+
+        msg = Message(
+            "Your OTP for Password Reset",
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[email]
+        )
+
+        msg.body = f"""
+Hello,
+
+Your OTP for resetting your password is: {otp}
+
+This OTP is valid for 5 minutes.
+
+If you didn't request this, please ignore.
+
+QuickNotes Security
+"""
+
+        mail.send(msg)
+
+        flash("OTP sent to your email")
+
+        return redirect(url_for("verify_otp"))
+
+    return render_template("forgot_password.html")
+
+
+# ---------------- VERIFY OTP ---------------- #
+
+@app.route("/verify-otp", methods=["GET", "POST"])
+def verify_otp():
+
+    if request.method == "POST":
+
+        user_otp = request.form.get("otp")
+
+        # Check OTP expiry (5 minutes)
+        if time.time() - session.get("otp_time", 0) > 300:
+            session.pop("otp", None)
+            session.pop("email", None)
+            session.pop("otp_time", None)
+
+            flash("OTP expired. Please request a new one.")
+            return redirect(url_for("forgot_password"))
+
+        if user_otp == session.get("otp"):
+            return redirect(url_for("reset_password"))
+
+        flash("Invalid OTP")
+
+    return render_template("verify_otp.html")
+
+
+# ---------------- RESET PASSWORD ---------------- #
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+
+    if request.method == "POST":
+
+        password = request.form.get("password")
+
+        hashed_password = generate_password_hash(password)
+
+        db = get_db()
+
+        db.execute(
+            "UPDATE user SET password=? WHERE email=?",
+            (hashed_password, session['email'])
+        )
+
+        db.commit()
+        db.close()
+
+        # Clear session
+        session.pop("otp", None)
+        session.pop("email", None)
+        session.pop("otp_time", None)
+
+        flash("Password reset successful")
+
+        return redirect(url_for("login"))
+
+    return render_template("reset_password.html")
 # ---------------- RUN APP ---------------- #
 
 if __name__ == "__main__":

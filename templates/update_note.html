@@ -1,24 +1,289 @@
 <!DOCTYPE html>
-
 <html>
 <head>
-<title>Update Note</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6f8;
+height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+/* HEADER */
+
+.header{
+display:flex;
+align-items:center;
+justify-content:space-between;
+background:#2c3e50;
+color:white;
+padding:12px 15px;
+}
+
+.header-left{
+cursor:pointer;
+font-size:24px;
+}
+
+.header-title{
+font-weight:bold;
+font-size:18px;
+}
+
+.header-right{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+/* autosave animation */
+
+@keyframes spin{
+100%{transform:rotate(360deg);}
+}
+
+.spinning{
+display:inline-block;
+animation:spin 1s linear infinite;
+}
+
+/* dropdown menu */
+
+.dropdown{
+position:absolute;
+right:10px;
+top:55px;
+background:white;
+border-radius:6px;
+box-shadow:0 3px 10px rgba(0,0,0,0.2);
+display:none;
+z-index:1000;
+}
+
+.dropdown a{
+display:block;
+padding:10px 15px;
+text-decoration:none;
+color:black;
+}
+
+.dropdown a:hover{
+background:#eee;
+}
+
+/* editor container */
+
+.editor{
+flex:1;
+display:flex;
+flex-direction:column;
+overflow:hidden;
+}
+
+/* title */
+
+.title{
+width:100%;
+font-size:22px;
+border:none;
+outline:none;
+padding:15px;
+font-weight:bold;
+background:white;
+border-bottom:1px solid #ddd;
+}
+
+/* content */
+
+.content{
+flex:1;
+outline:none;
+padding:15px;
+font-size:16px;
+background:white;
+overflow-y:auto;
+padding-bottom:40px;
+}
+
+[contenteditable]:empty:before{
+content:attr(placeholder);
+color:#aaa;
+}
+
+/* footer toolbar */
+
+.toolbar{
+display:flex;
+justify-content:space-around;
+background:white;
+border-top:1px solid #ddd;
+padding:10px;
+font-size:20px;
+}
+
+.toolbar span{
+cursor:pointer;
+padding:5px 15px;
+border-radius:4px;
+}
+
+.toolbar span:active{
+background:#ddd;
+}
+
+</style>
 </head>
+
 <body>
 
-<h2>Edit Note</h2>
+<!-- HEADER -->
 
-<form method="POST">
+<div class="header">
 
-<input type="text" name="title" value="{{note.title}}"><br><br>
+<div class="header-left" onclick="location.href='/'">
+⬅
+</div>
 
-<textarea name="content" rows="8" cols="40">{{note.content}}</textarea><br><br>
+<div class="header-title">
+QuickNotes
+</div>
 
-<button type="submit">Update</button>
+<div class="header-right">
 
-</form>
+<span id="saveIcon">✔</span>
 
-<a href="/notes">Back</a>
+<div style="cursor:pointer;font-size:22px" onclick="toggleMenu()">⋮</div>
+
+</div>
+
+</div>
+
+<!-- dropdown menu -->
+
+<div id="dropdown" class="dropdown">
+
+<a href="/move_to_trash/{{note.id}}">Delete</a>
+
+<a href="/share/{{note.id}}">Share</a>
+
+<a href="/export_note/{{note.id}}?type=pdf">Export PDF</a>
+
+<a href="/export_note/{{note.id}}?type=docx">Export DOCX</a>
+
+</div>
+
+
+<!-- EDITOR -->
+
+<div class="editor">
+
+<input
+class="title"
+id="title"
+value="{{note.title}}"
+placeholder="Title"
+>
+
+<div
+class="content"
+id="content"
+contenteditable="true"
+placeholder="Start writing..."
+>
+
+{{note.content | safe}}
+
+</div>
+
+</div>
+
+
+<!-- FOOTER TOOLBAR -->
+
+<div class="toolbar">
+
+<span onmousedown="event.preventDefault(); document.execCommand('bold')"><b>B</b></span>
+
+<span onmousedown="event.preventDefault(); document.execCommand('italic')"><i>I</i></span>
+
+<span onmousedown="event.preventDefault(); document.execCommand('underline')"><u>U</u></span>
+
+<span onmousedown="event.preventDefault(); document.execCommand('undo')">↶</span>
+
+<span onmousedown="event.preventDefault(); document.execCommand('redo')">↷</span>
+
+</div>
+
+
+<script>
+
+let timer
+
+const saveIcon=document.getElementById("saveIcon")
+
+function autoSave(){
+
+clearTimeout(timer)
+
+saveIcon.innerText="⟳"
+saveIcon.classList.add("spinning")
+
+timer=setTimeout(()=>{
+
+fetch("/update_note/{{note.id}}",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+title:document.getElementById("title").value,
+
+content:document.getElementById("content").innerHTML
+
+})
+
+})
+
+.then(res=>res.json())
+
+.then(data=>{
+
+saveIcon.innerText="✔"
+saveIcon.classList.remove("spinning")
+
+})
+
+},800)
+
+}
+
+/* dropdown */
+
+function toggleMenu(){
+
+let menu=document.getElementById("dropdown")
+
+menu.style.display = menu.style.display==="block" ? "none":"block"
+
+}
+
+/* autosave listeners */
+
+document.getElementById("title").addEventListener("input",autoSave)
+
+document.getElementById("content").addEventListener("input",autoSave)
+
+</script>
 
 </body>
 </html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>QuickNotes</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family: Arial;
+margin:0;
+background:#f4f6f8;
+}
+
+/* navbar */
+
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#2c3e50;
+color:white;
+padding:15px;
+position:sticky;
+top:0;
+}
+
+.logo{
+font-size:18px;
+font-weight:bold;
+}
+
+.menu-btn{
+font-size:24px;
+cursor:pointer;
+}
+
+.profile{
+cursor:pointer;
+font-size:22px;
+}
+
+/* sidebar */
+
+.sidebar{
+position:fixed;
+top:0;
+left:-260px;
+width:260px;
+height:100%;
+background:#34495e;
+transition:0.3s;
+z-index:1001;
+padding-top:20px;
+}
+
+.sidebar a{
+display:block;
+color:white;
+padding:14px 20px;
+text-decoration:none;
+}
+
+.sidebar a:hover{
+background:#2c3e50;
+}
+
+.close-btn{
+color:white;
+font-size:26px;
+position:absolute;
+top:10px;
+right:15px;
+cursor:pointer;
+}
+
+/* overlay */
+
+.overlay{
+position:fixed;
+top:0;
+left:0;
+height:100%;
+width:100%;
+background:rgba(0,0,0,0.4);
+display:none;
+z-index:1000;
+}
+
+/* container */
+
+.container{
+padding:15px;
+}
+
+/* create button */
+
+.create-btn{
+background:#3498db;
+color:white;
+border:none;
+padding:12px 18px;
+border-radius:8px;
+cursor:pointer;
+font-size:15px;
+}
+
+/* search */
+
+.search{
+padding:10px;
+width:100%;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+/* notes grid */
+
+.notes{
+display:grid;
+grid-template-columns:1fr;
+gap:15px;
+}
+
+/* note card */
+
+.note-card{
+background:white;
+padding:15px;
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+text-decoration:none;
+color:black;
+display:block;
+transition:0.2s;
+}
+
+.note-card:hover{
+transform:scale(1.02);
+}
+
+.note-title{
+font-size:18px;
+font-weight:bold;
+margin-bottom:6px;
+}
+
+.note-content{
+color:#555;
+font-size:14px;
+}
+
+/* action buttons */
+
+.note-actions{
+margin-top:10px;
+display:flex;
+gap:10px;
+}
+
+.edit-btn{
+color:#3498db;
+text-decoration:none;
+font-size:14px;
+}
+
+.delete-btn{
+background:#e74c3c;
+border:none;
+color:white;
+padding:5px 10px;
+border-radius:5px;
+cursor:pointer;
+font-size:13px;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<!-- overlay -->
+<div id="overlay" class="overlay" onclick="closeMenu()"></div>
+
+
+<!-- sidebar -->
+
+<div id="sidebar" class="sidebar">
+
+<span class="close-btn" onclick="closeMenu()">✖</span>
+
+<a href="/">Home</a>
+<a href="/create_note">Create Note</a>
+<a href="/notes">All Notes</a>
+<a href="/trash">Trash</a>
+<a href="/recover_account">Recover Account</a>
+<a href="/logout">Logout</a>
+
+</div>
+
+
+<!-- navbar -->
+
+<div class="navbar">
+
+<span class="menu-btn" onclick="openMenu()">☰</span>
+
+<div class="logo">QuickNotes</div>
+
+<div class="profile" onclick="location.href='/profile'">
+👤
+</div>
+
+</div>
+
+
+<div class="container">
+
+<a href="/create_note">
+<button class="create-btn">+ Create Note</button>
+</a>
+
+<br><br>
+
+<form action="/search">
+<input class="search" name="q" placeholder="Search notes">
+</form>
+
+<br><br>
+
+<div class="notes">
+
+{% for note in notes %}
+
+<a href="/update_note/{{note.id}}" class="note-card">
+
+<div class="note-title">
+{{note.title}}
+</div>
+
+<div class="note-content">
+{{note.content[:100]}}...
+</div>
+
+<div class="note-actions">
+
+<a class="edit-btn" href="/update_note/{{note.id}}" onclick="event.stopPropagation()">Edit</a>
+
+<form action="/move_to_trash/{{note.id}}" method="post" onclick="event.stopPropagation()">
+
+<button class="delete-btn">Delete</button>
+
+</form>
+
+</div>
+
+</a>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+
+<script>
+
+function openMenu(){
+
+document.getElementById("sidebar").style.left="0"
+document.getElementById("overlay").style.display="block"
+
+}
+
+function closeMenu(){
+
+document.getElementById("sidebar").style.left="-260px"
+document.getElementById("overlay").style.display="none"
+
+}
+
+</script>
+
+</body>
+</html>

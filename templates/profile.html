@@ -1,26 +1,218 @@
 <!DOCTYPE html>
-
 <html>
 <head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Profile</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6f8;
+}
+
+/* HEADER */
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#2c3e50;
+color:white;
+padding:14px 18px;
+}
+
+.home-btn{
+font-size:22px;
+cursor:pointer;
+}
+
+.header-title{
+font-size:18px;
+font-weight:bold;
+}
+
+.profile-icon{
+font-size:22px;
+}
+
+/* profile container */
+
+.container{
+display:flex;
+justify-content:center;
+padding:30px 15px;
+}
+
+/* profile card */
+
+.card{
+background:white;
+width:100%;
+max-width:420px;
+padding:25px;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+/* avatar */
+
+.avatar{
+font-size:70px;
+margin-bottom:10px;
+}
+
+/* name */
+
+.name{
+font-size:22px;
+font-weight:bold;
+margin-bottom:5px;
+}
+
+.email{
+color:#666;
+margin-bottom:15px;
+}
+
+/* info */
+
+.info{
+text-align:left;
+margin-top:10px;
+}
+
+.info p{
+margin:8px 0;
+}
+
+/* buttons */
+
+.btn{
+display:block;
+width:100%;
+padding:12px;
+margin-top:12px;
+border:none;
+border-radius:8px;
+font-size:15px;
+cursor:pointer;
+text-decoration:none;
+text-align:center;
+}
+
+/* button colors */
+
+.notes-btn{
+background:#3498db;
+color:white;
+}
+
+.update-btn{
+background:#27ae60;
+color:white;
+}
+
+.reset-btn{
+background:#8e44ad;
+color:white;
+}
+
+.logout-btn{
+background:#f39c12;
+color:white;
+}
+
+.delete-btn{
+background:#e74c3c;
+color:white;
+}
+
+.btn:hover{
+opacity:0.9;
+}
+
+</style>
+
 </head>
+
 <body>
 
-<h2>User Profile</h2>
+<!-- HEADER -->
 
-<p>Name: {{user.name}}</p>
-<p>Email: {{user.email}}</p>
-<p>DOB: {{user.dob}}</p>
+<div class="header">
 
-<br>
+<div class="home-btn" onclick="location.href='/'">
+🏠
+</div>
 
-<a href="/notes">My Notes</a><br><br>
+<div class="header-title">
+QuickNotes
+</div>
 
-<a href="/logout">Logout</a>
+<div class="profile-icon">
+👤
+</div>
 
-<form action="/delete_account" method="POST">
-<button type="submit">Delete Account</button>
+</div>
+
+<!-- PROFILE CARD -->
+
+<div class="container">
+
+<div class="card">
+
+<div class="avatar">
+👤
+</div>
+
+<div class="name">
+{{user.name}}
+</div>
+
+<div class="email">
+{{user.email}}
+</div>
+
+<div class="info">
+<p><b>Date of Birth:</b> {{user.dob}}</p>
+</div>
+
+<a href="/notes" class="btn notes-btn">
+📒 My Notes
+</a>
+
+<a href="/update_account" class="btn update-btn">
+✏ Update Account
+</a>
+
+<a href="/forgot_password" class="btn reset-btn">
+🔑 Reset Password
+</a>
+
+<a href="/logout" class="btn logout-btn">
+🚪 Logout
+</a>
+
+<form 
+action="/delete_account" 
+method="POST"
+onsubmit="return confirm('Are you sure you want to delete your account?')"
+>
+
+<button class="btn delete-btn" type="submit">
+🗑 Delete Account
+</button>
+
 </form>
+
+</div>
+
+</div>
 
 </body>
 </html>
