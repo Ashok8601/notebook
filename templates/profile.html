@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Profile</title>
+</head>
+<body>
+
+<h2>User Profile</h2>
+
+<p>Name: {{user.name}}</p>
+<p>Email: {{user.email}}</p>
+<p>DOB: {{user.dob}}</p>
+
+<br>
+
+<a href="/notes">My Notes</a><br><br>
+
+<a href="/logout">Logout</a>
+
+<form action="/delete_account" method="POST">
+<button type="submit">Delete Account</button>
+</form>
+
+</body>
+</html>

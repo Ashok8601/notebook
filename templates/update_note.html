@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Update Note</title>
+</head>
+<body>
+
+<h2>Edit Note</h2>
+
+<form method="POST">
+
+<input type="text" name="title" value="{{note.title}}"><br><br>
+
+<textarea name="content" rows="8" cols="40">{{note.content}}</textarea><br><br>
+
+<button type="submit">Update</button>
+
+</form>
+
+<a href="/notes">Back</a>
+
+</body>
+</html>

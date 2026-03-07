@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Recover Account</title>
+</head>
+<body>
+
+<h2>Recover Account</h2>
+
+<form method="POST">
+
+<input type="email" name="email" placeholder="Email"><br><br>
+
+<input type="password" name="password" placeholder="Password"><br><br>
+
+<button type="submit">Recover</button>
+
+</form>
+
+<a href="/login">Back to login</a>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+
+<ul>
+{% for m in messages %}
+<li>{{m}}</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
+</body>
+</html>

@@ -15,12 +15,21 @@ import pickle
 from flask_cors import CORS
 UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
+<<<<<<< HEAD
 CORS(app, supports_credentials=True)
 #app.secret_key = "ashokkumaryadav"
 app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")
 app.config.update(
     SESSION_COOKIE_SAMESITE="None",
     SESSION_COOKIE_SECURE=True
+=======
+CORS(app, resources={r"/*": {"origins": "http://localhost:63342"}}, supports_credentials=True)
+app.secret_key = "ashokkumaryadav"
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True
+>>>>>>> 183d26e (added conversion app for api to render)
 )
 
 # ---------------- DATABASE INIT ---------------- #
@@ -54,7 +63,11 @@ def init_db():
     )
     ''')
     cur.execute('''CREATE TABLE IF NOT EXISTS user_profile(id INTEGER  PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE, dob TEXT, mobile TEXT, photo_path TEXT, secret_key TEXT, bio TEXT, FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE )''')
+<<<<<<< HEAD
     cur.execute('ALTER TABLE notebook ADD COLUMN category TEXT DEFAULT NULL')
+=======
+    #cur.execute('ALTER TABLE notebook ADD COLUMN category TEXT DEFAULT NULL')
+>>>>>>> 183d26e (added conversion app for api to render)
 
     conn.commit()
     conn.close()

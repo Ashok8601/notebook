@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; }
+        form { display: flex; flex-direction: column; width: 300px; gap: 10px; }
+        input { padding: 8px; }
+        button { padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        #message { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div>
+        <h2>Create Account</h2>
+        <form id="signupForm">
+            <input type="text" id="name" placeholder="Full Name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <input type="date" id="dob">
+            <button type="submit">Sign Up</button>
+        </form>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageElement = document.getElementById('message');
+
+            const userData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                dob: document.getElementById('dob').value
+            };
+
+            try {
+                const response = await fetch('https://quicknotes-b0t7.onrender.com/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Success! Alert the user and redirect
+                    alert("Account created successfully!");
+                    window.location.href = 'login.html';
+                } else {
+                    // Show error message (e.g., "Email already exists")
+                    messageElement.innerText = result.message;
+                }
+            } catch (error) {
+                messageElement.innerText = "Error connecting to server.";
+            }
+        });
+    </script>
+</body>
+</html>

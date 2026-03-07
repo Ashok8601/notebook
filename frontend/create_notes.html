@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Note</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; }
+        form { display: flex; flex-direction: column; width: 400px; gap: 10px; }
+        input, textarea { padding: 8px; }
+        textarea { height: 150px; }
+        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        #message { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div>
+        <h2>Create Note</h2>
+        <form id="noteForm">
+            <input type="text" id="title" placeholder="Note Title" required>
+            <textarea id="content" placeholder="Write your note here..." required></textarea>
+            <button type="submit">Save Note</button>
+        </form>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        document.getElementById('noteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageElement = document.getElementById('message');
+
+            const noteData = {
+                title: document.getElementById('title').value,
+                content: document.getElementById('content').value
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/create_note', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // 'credentials: include' jaruri hai taki session cookie bheji ja sake
+                    credentials: 'include',
+                    body: JSON.stringify(noteData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Note created successfully!");
+                    window.location.href = 'home.html';
+                } else {
+                    messageElement.innerText = result.message;
+                    if(response.status === 401) {
+                        // Agar login nahi hai, to login page par bhej do
+                        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                    }
+                }
+            } catch (error) {
+                messageElement.innerText = "Error connecting to server.";
+            }
+        });
+    </script>
+</body>
+</html>

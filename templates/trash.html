@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Trash</title>
+</head>
+<body>
+
+<h2>Trash</h2>
+
+<a href="/notes">Back to Notes</a>
+
+<br><br>
+
+{% for note in trash %}
+
+<hr>
+
+<h3>{{note.title}}</h3>
+
+<p>{{note.content}}</p>
+
+<form action="/restore_note/{{note.id}}" method="POST">
+<button type="submit">Restore</button>
+</form>
+
+{% endfor %}
+
+</body>
+</html>
