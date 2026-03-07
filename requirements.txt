@@ -3,3 +3,11 @@ Werkzeug
 reportlab
 python-docx
 Flask-Mail
+gunicorn
+flask-cors
+Flask-APScheduler
+email-validator
+pandas
+numpy
+scikit-learn
+apscheduler
