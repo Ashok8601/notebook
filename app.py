@@ -1,13 +1,13 @@
 from datetime import datetime
 from flask import Flask, jsonify, request, session,send_file
-from reportlab.pdfgen import canvas
-from docx import Document
+#from reportlab.pdfgen import canvas
+#from docx import Document
 import os.path
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from werkzeug.security import generate_password_hash, check_password_hash
-from apscheduler.schedulers.background import BackgroundScheduler
+#from apscheduler.schedulers.background import BackgroundScheduler
 import sqlite3
 from werkzeug.utils import secure_filename
 from fileinput import filename
@@ -15,22 +15,22 @@ import pickle
 from flask_cors import CORS
 UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
-<<<<<<< HEAD
 CORS(app, supports_credentials=True)
-#app.secret_key = "ashokkumaryadav"
-app.secret_key = os.environ.get("SECRET_KEY", "dev_secret")
+app.secret_key = "ashokkumaryadav"
+#app.secret_key = os.environ.get("SECRET_KEY","dev_secret")
 app.config.update(
-    SESSION_COOKIE_SAMESITE="None",
-    SESSION_COOKIE_SECURE=True
-=======
+    SESSION_COOKIE_SAMESITE='Lax',  # Localhost ke liye 'Lax' behtar hai
+    SESSION_COOKIE_SECURE=False,    # HTTP par kaam karne ke liye False zaroori hai
+    SESSION_COOKIE_HTTPONLY=True
+)
+
+
 CORS(app, resources={r"/*": {"origins": "http://localhost:63342"}}, supports_credentials=True)
 app.secret_key = "ashokkumaryadav"
 app.config.update(
     SESSION_COOKIE_SAMESITE='None',
     SESSION_COOKIE_SECURE=True,
-    SESSION_COOKIE_HTTPONLY=True
->>>>>>> 183d26e (added conversion app for api to render)
-)
+    SESSION_COOKIE_HTTPONLY=True)
 
 # ---------------- DATABASE INIT ---------------- #
 
@@ -63,11 +63,8 @@ def init_db():
     )
     ''')
     cur.execute('''CREATE TABLE IF NOT EXISTS user_profile(id INTEGER  PRIMARY KEY AUTOINCREMENT, user_id INTEGER UNIQUE, dob TEXT, mobile TEXT, photo_path TEXT, secret_key TEXT, bio TEXT, FOREIGN KEY(user_id) REFERENCES user(id) ON DELETE CASCADE )''')
-<<<<<<< HEAD
-    cur.execute('ALTER TABLE notebook ADD COLUMN category TEXT DEFAULT NULL')
-=======
     #cur.execute('ALTER TABLE notebook ADD COLUMN category TEXT DEFAULT NULL')
->>>>>>> 183d26e (added conversion app for api to render)
+    #cur.execute('ALTER TABLE notebook ADD COLUMN category TEXT DEFAULT NULL')
 
     conn.commit()
     conn.close()
@@ -784,12 +781,13 @@ def assign_category(note_id):
         "category": category
     })                
                                                 
-scheduler = BackgroundScheduler()
-scheduler.add_job(delete_old_users, 'interval', hours=24)
-scheduler.start()
+#scheduler = BackgroundScheduler()
+#scheduler.add_job(delete_old_users, 'interval', hours=24)
+#scheduler.start()
 
 
 # ---------------- RUN SERVER ---------------- #
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
