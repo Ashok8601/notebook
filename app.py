@@ -18,11 +18,6 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = "ashokkumaryadav"
 #app.secret_key = os.environ.get("SECRET_KEY","dev_secret")
-#app.config.update(
-    SESSION_COOKIE_SAMESITE='Lax',  # Localhost ke liye 'Lax' behtar hai
-    SESSION_COOKIE_SECURE=False,    # HTTP par kaam karne ke liye False zaroori hai
-    SESSION_COOKIE_HTTPONLY=True
-)
 
 
 CORS(app, resources={r"/*": {"origins": "http://localhost:63342"}}, supports_credentials=True)
