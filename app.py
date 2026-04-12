@@ -1,33 +1,30 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, session,send_file
-#from reportlab.pdfgen import canvas
-#from docx import Document
+from reportlab.pdfgen import canvas
+from docx import Document
 import os.path
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from werkzeug.security import generate_password_hash, check_password_hash
-#from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 import sqlite3
 from werkzeug.utils import secure_filename
-from fileinput import filename
 import pickle
-from flask_cors import CORS
+from flask_jwt_extended import (
+JWTManager,
+create_access_token,
+create_refresh_token,
+jwt_required,
+get_jwt_identity
+)
 UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
-app.secret_key = "ashokkumaryadav"
-#app.secret_key = os.environ.get("SECRET_KEY","dev_secret")
-
-
-CORS(app, resources={r"/*": {"origins": "http://localhost:63342"}}, supports_credentials=True)
-app.secret_key = "ashokkumaryadav"
-app.config.update(
-    SESSION_COOKIE_SAMESITE='None',
-    SESSION_COOKIE_SECURE=True,
-    SESSION_COOKIE_HTTPONLY=True)
-
-# ---------------- DATABASE INIT ---------------- #
+app.config["jwt_access_token_expires"] = timedelta(minutes=15)
+app.config["jwt_refresh_token_expires"] = timedelta(days=7)
+app.config["JWT_SECRET_KEY"] = "ashokkumaryadav"
+jwt=JWTManager(app)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 def init_db():
     conn = sqlite3.connect('notebook.db')
@@ -72,12 +69,9 @@ init_db()
 
 
 @app.route('/profile', methods=['GET'])
+@jwt_required()
 def profile():
-    # 1️⃣ Check if user is logged in
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({"message": "Login required"}), 401
-
+    current_user=get_jwt_identity()
     # 2️⃣ Connect to DB
     conn = sqlite3.connect('notebook.db')
     conn.row_factory = sqlite3.Row  # So we can convert row to dict
@@ -86,7 +80,7 @@ def profile():
     # 3️⃣ Fetch user data
     user = cur.execute(
         "SELECT id, name, email, dob FROM user WHERE id=?",
-        (user_id,)
+        (current_user,)
     ).fetchone()
 
     conn.close()
@@ -158,13 +152,27 @@ def login():
     if user['is_deleted'] == 1:
         return jsonify({"message": "Account scheduled for deletion. Recover within 30 days."})
 
-    session['user_id'] = user['id']
+    access_token = create_access_token(identity=user['id'])
+    refresh_token = create_refresh_token(identity=user['id'])
+
 
     conn.close()
 
-    return jsonify({"message": "Login successful"})
+    return jsonify({"message": "Login successful", "access_token": access_token, "refresh_token": refresh_token})
 
 
+@app.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    current_user = get_jwt_identity()
+
+    new_access_token = create_access_token(identity=current_user)
+
+    return jsonify({
+        "access_token": new_access_token
+    })
+
+'''
 # ---------------- CREATE NOTE ---------------- #
 
 @app.route('/create_note', methods=['POST'])
@@ -781,7 +789,7 @@ def assign_category(note_id):
 #scheduler.start()
 
 
-# ---------------- RUN SERVER ---------------- #
+# ---------------- RUN SERVER ---------------- #'''
 
 if __name__ == "__main__":
     app.run(debug=True)

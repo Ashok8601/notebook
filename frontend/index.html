@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Auth System</title>
+
+<style>
+body{
+    font-family: 'Segoe UI';
+    background: linear-gradient(135deg,#0f172a,#1e293b);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    margin:0;
+}
+
+.container{
+    background:#1e293b;
+    padding:30px;
+    border-radius:15px;
+    width:340px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+}
+
+h2{
+    text-align:center;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:none;
+    border-radius:8px;
+    background:#0f172a;
+    color:white;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#38bdf8;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:#0ea5e9;
+}
+
+.toggle{
+    text-align:center;
+    margin-top:10px;
+    cursor:pointer;
+    color:#38bdf8;
+}
+
+.message{
+    text-align:center;
+    margin-top:10px;
+}
+
+.loader{
+    display:none;
+    text-align:center;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2 id="title">Login</h2>
+
+    <input id="name" placeholder="Name" style="display:none;">
+    <input id="dob" type="date" style="display:none;">
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="submitForm()">Submit</button>
+
+    <div class="loader" id="loader">Processing...</div>
+    <div class="message" id="message"></div>
+
+    <div class="toggle" onclick="toggleForm()">Switch to Signup</div>
+
+</div>
+
+<script>
+
+let isLogin = true;
+
+// 🔁 Toggle Login/Signup
+function toggleForm(){
+    isLogin = !isLogin;
+
+    document.getElementById("title").innerText = isLogin ? "Login" : "Signup";
+
+    document.getElementById("name").style.display = isLogin ? "none" : "block";
+    document.getElementById("dob").style.display = isLogin ? "none" : "block";
+
+    document.querySelector(".toggle").innerText = isLogin
+        ? "Switch to Signup"
+        : "Switch to Login";
+
+    document.getElementById("message").innerText = "";
+}
+
+// 🚀 Submit Form
+async function submitForm(){
+
+    const name = document.getElementById("name").value;
+    const dob = document.getElementById("dob").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const msg = document.getElementById("message");
+    const loader = document.getElementById("loader");
+
+    msg.innerText = "";
+    loader.style.display = "block";
+
+    // Validation
+    if(!email || !password || (!isLogin && (!name || !dob))){
+        loader.style.display = "none";
+        msg.innerText = "Please fill all fields";
+        return;
+    }
+
+    // 🔥 FULL URL FIX
+    const url = isLogin
+        ? "http://127.0.0.1:5000/login"
+        : "http://127.0.0.1:5000/signup";
+
+    const body = isLogin
+        ? { email, password }
+        : { name, email, password, dob };
+
+    try{
+        const res = await fetch(url,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        loader.style.display = "none";
+
+        if(res.ok && isLogin){
+            localStorage.setItem("access", data.access_token);
+            localStorage.setItem("refresh", data.refresh_token);
+
+            window.location.href = "profile.html";
+        }else{
+            msg.innerText = data.message || "Something went wrong";
+        }
+
+    }catch(err){
+        loader.style.display = "none";
+        msg.innerText = "Server not running or CORS issue";
+    }
+}
+
+</script>
+
+</body>
+</html>
