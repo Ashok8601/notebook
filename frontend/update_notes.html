@@ -1,10 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+<meta charset="UTF-8">
+<title>Update Note</title>
+
+<style>
+body {
+    font-family: Arial;
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+    background: #f4f4f4;
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px;
+}
+
+input, textarea {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px;
+    background: green;
+    color: white;
+    border: none;
+}
+
+</style>
 </head>
+
 <body>
-$END$
+
+<div class="container">
+    <h2>Update Note</h2>
+
+    <input type="text" id="title">
+    <textarea id="content"></textarea>
+
+    <button onclick="updateNote()">Update</button>
+
+    <p id="msg"></p>
+</div>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+// 🔥 token check
+if (!token) {
+    window.location.href = "login.html";
+}
+
+// 🔥 URL se ID nikalna
+const params = new URLSearchParams(window.location.search);
+const noteId = params.get("id");
+
+// 🔥 note load karna
+window.onload = async () => {
+
+    try {
+        const res = await fetch("http://127.0.0.1:5000/notes", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await res.json();
+
+        const note = data.notes.find(n => n.id == noteId);
+
+        if (note) {
+            document.getElementById("title").value = note.title;
+            document.getElementById("content").value = note.content;
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+
+// 🔥 update function
+async function updateNote() {
+
+    const title = document.getElementById("title").value;
+    const content = document.getElementById("content").value;
+
+    try {
+        const res = await fetch(`http://127.0.0.1:5000/update_notes/${noteId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ title, content })
+        });
+
+        // 🔥 token expire check
+        if (res.status === 401 || res.status === 422) {
+            localStorage.removeItem("token");
+            window.location.href = "login.html";
+            return;
+        }
+
+        const data = await res.json();
+
+        document.getElementById("msg").innerText = data.message;
+
+        // 🔥 redirect back
+        setTimeout(() => {
+            window.location.href = "home.html";
+        }, 1000);
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+</script>
+
 </body>
 </html>

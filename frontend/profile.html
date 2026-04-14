@@ -1,86 +1,75 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Profile</title>
-<style>
-body{
-    font-family:Arial;
-    background:#020617;
-    color:white;
-    text-align:center;
-    padding:40px;
-}
-
-.card{
-    background:#1e293b;
-    padding:20px;
-    border-radius:10px;
-    display:inline-block;
-}
-button{
-    margin-top:10px;
-    padding:10px;
-    background:red;
-    border:none;
-    color:white;
-    cursor:pointer;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
 
-<body>
+<div class="bg-white p-8 rounded-lg shadow-lg w-96 text-center">
+    <h2 class="text-2xl font-bold mb-4">User Profile</h2>
 
-<div class="card">
-    <h2>Profile</h2>
-    <p id="name"></p>
-    <p id="email"></p>
-    <button onclick="logout()">Logout</button>
+    <div id="profileData" class="space-y-2 text-left">
+        <p><strong>Name:</strong> <span id="name"></span></p>
+        <p><strong>Email:</strong> <span id="email"></span></p>
+        <p><strong>DOB:</strong> <span id="dob"></span></p>
+    </div>
+
+    <button onclick="logout()"
+        class="mt-6 w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">
+        Logout
+    </button>
 </div>
 
 <script>
+const token = localStorage.getItem('token');
 
-async function loadProfile(){
-    let token = localStorage.getItem("access");
+// 🔒 Agar token nahi hai → login page par bhej do
+if (!token) {
+    alert("Please login first!");
+    window.location.href = "login.html";
+}
 
-    let res = await fetch("/profile",{
-        headers:{
-            "Authorization": "Bearer " + token
+// 🔥 Fetch profile data
+async function loadProfile() {
+    try {
+        const response = await fetch('http://127.0.0.1:5000/profile', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token   // ✅ IMPORTANT
+            }
+        });
+
+        const data = await response.json();
+        console.log("Profile Data:", data);
+
+        if (response.ok) {
+            document.getElementById('name').innerText = data.name;
+            document.getElementById('email').innerText = data.email;
+            document.getElementById('dob').innerText = data.dob;
+        } else {
+            alert(data.message || "Error loading profile");
+            window.location.href = "login.html";
         }
-    });
 
-    if(res.status === 401){
-        await refreshToken();
-        return loadProfile();
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Server error!");
     }
-
-    let data = await res.json();
-
-    document.getElementById("name").innerText = data.name;
-    document.getElementById("email").innerText = data.email;
 }
 
-async function refreshToken(){
-    let refresh = localStorage.getItem("refresh");
-
-    let res = await fetch("/refresh",{
-        method:"POST",
-        headers:{
-            "Authorization": "Bearer " + refresh
-        }
-    });
-
-    let data = await res.json();
-
-    localStorage.setItem("access", data.access_token);
-}
-
-function logout(){
-    localStorage.clear();
-    window.location.href = "index.html";
-}
-
+// 🚀 Load on page open
 loadProfile();
 
+// 🔓 Logout function
+function logout() {
+    localStorage.removeItem('token');
+    alert("Logged out!");
+    window.location.href = "login.html";
+}
 </script>
 
 </body>

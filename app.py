@@ -11,6 +11,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import sqlite3
 from werkzeug.utils import secure_filename
 import pickle
+from flask_cors import CORS
 from flask_jwt_extended import (
 JWTManager,
 create_access_token,
@@ -20,6 +21,7 @@ get_jwt_identity
 )
 UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
+CORS(app)
 app.config["jwt_access_token_expires"] = timedelta(minutes=15)
 app.config["jwt_refresh_token_expires"] = timedelta(days=7)
 app.config["JWT_SECRET_KEY"] = "ashokkumaryadav"
@@ -172,14 +174,12 @@ def refresh():
         "access_token": new_access_token
     })
 
-'''
+
 # ---------------- CREATE NOTE ---------------- #
 
 @app.route('/create_note', methods=['POST'])
+@jwt_required()
 def create_note():
-
-    if not session.get('user_id'):
-        return jsonify({"message": "Login required"}), 401
 
     data = request.get_json()
 
@@ -191,7 +191,7 @@ def create_note():
 
     cur.execute(
         "INSERT INTO notebook(title,content,user_id) VALUES(?,?,?)",
-        (title, content, session['user_id'])
+        (title, content, get_jwt_identity())
     )
 
     conn.commit()
@@ -203,10 +203,8 @@ def create_note():
 # ---------------- SHOW NOTES ---------------- #
 
 @app.route('/notes', methods=['GET'])
+@jwt_required()
 def show_notes():
-
-    if not session.get('user_id'):
-        return jsonify({"message": "Login required"}), 401
 
     conn = sqlite3.connect('notebook.db')
     conn.row_factory = sqlite3.Row
@@ -214,7 +212,7 @@ def show_notes():
 
     notes = cur.execute(
         "SELECT * FROM notebook WHERE user_id=? AND is_deleted=0",
-        (session['user_id'],)
+        (get_jwt_identity(),)
     ).fetchall()
 
     conn.close()
@@ -226,11 +224,9 @@ def show_notes():
 
 # ---------------- UPDATE NOTE ---------------- #
 
-@app.route('/update_note/<int:id>', methods=['PUT'])
+@app.route('/update_notes/<int:id>', methods=['PUT'])
+@jwt_required()
 def update_note(id):
-
-    if not session.get('user_id'):
-        return jsonify({"message": "Login required"}), 401
 
     data = request.get_json()
 
@@ -242,7 +238,7 @@ def update_note(id):
 
     cur.execute(
         "UPDATE notebook SET title=?,content=? WHERE id=? AND user_id=?",
-        (title, content, id, session['user_id'])
+        (title, content, id,get_jwt_identity())
     )
 
     conn.commit()
@@ -254,17 +250,15 @@ def update_note(id):
 # ---------------- MOVE TO TRASH ---------------- #
 
 @app.route('/move_to_trash/<int:id>', methods=['PUT'])
+@jwt_required()
 def move_to_trash(id):
-
-    if not session.get('user_id'):
-        return jsonify({"message": "Login required"}), 401
 
     conn = sqlite3.connect('notebook.db')
     cur = conn.cursor()
 
     cur.execute(
         "UPDATE notebook SET is_deleted=1 WHERE id=? AND user_id=?",
-        (id, session['user_id'])
+        (id, get_jwt_identity())
     )
 
     conn.commit()
@@ -276,10 +270,8 @@ def move_to_trash(id):
 # ---------------- TRASH NOTES ---------------- #
 
 @app.route('/trash', methods=['GET'])
+@jwt_required()
 def trash():
-
-    if not session.get('user_id'):
-        return jsonify({"message": "Login required"}), 401
 
     conn = sqlite3.connect('notebook.db')
     conn.row_factory = sqlite3.Row
@@ -287,7 +279,7 @@ def trash():
 
     notes = cur.execute(
         "SELECT * FROM notebook WHERE user_id=? AND is_deleted=1",
-        (session['user_id'],)
+        (get_jwt_identity(),)
     ).fetchall()
 
     conn.close()
@@ -300,6 +292,7 @@ def trash():
 # ---------------- RESTORE NOTE ---------------- #
 
 @app.route('/restore_note/<int:id>', methods=['PUT'])
+@jwt_required()
 def restore_note(id):
 
     conn = sqlite3.connect('notebook.db')
@@ -307,7 +300,7 @@ def restore_note(id):
 
     cur.execute(
         "UPDATE notebook SET is_deleted=0 WHERE id=? AND user_id=?",
-        (id, session['user_id'])
+        (id, get_jwt_identity())
     )
 
     conn.commit()
@@ -319,11 +312,8 @@ def restore_note(id):
 # ---------------- SEARCH ---------------- #
 
 @app.route('/search', methods=['POST'])
+@jwt_required()
 def search():
-
-    if not session.get('user_id'):
-        return jsonify({"message": "Login required"}), 401
-
     query = request.json.get('query')
 
     conn = sqlite3.connect('notebook.db')
@@ -335,7 +325,7 @@ def search():
     WHERE user_id=? AND is_deleted=0
     AND (title LIKE ? OR content LIKE ?)
     """, (
-        session['user_id'],
+        get_jwt_identity(),
         '%' + query + '%',
         '%' + query + '%'
     )).fetchall()
@@ -350,6 +340,7 @@ def search():
 # ---------------- FILTER ---------------- #
 
 @app.route('/filter', methods=['POST'])
+@jwt_required()
 def filter_notes():
 
     method = request.json.get('method')
@@ -372,7 +363,7 @@ def filter_notes():
 
     notes = cur.execute(
         f"SELECT * FROM notebook WHERE user_id=? AND is_deleted=0 {query}",
-        (session['user_id'],)
+        (get_jwt_identity(),)
     ).fetchall()
 
     conn.close()
@@ -385,14 +376,13 @@ def filter_notes():
 # ---------------- DELETE ACCOUNT REQUEST ---------------- #
 
 @app.route('/delete_account', methods=['POST'])
+@jwt_required()
 def delete_account():
-
     conn = sqlite3.connect('notebook.db')
     cur = conn.cursor()
-
     cur.execute(
         "UPDATE user SET is_deleted=1,delete_request_at=? WHERE id=?",
-        (datetime.now(), session['user_id'])
+        (datetime.now(), get_jwt_identity())
     )
 
     conn.commit()
@@ -457,12 +447,9 @@ def delete_old_users():
 
 
 @app.route('/export_note/<int:id>', methods=['GET'])
+@jwt_required()
 def export_note(id):
-
-    if not session.get('user_id'):
-        return jsonify({"message":"login required"})
-
-    user_id = session['user_id']
+    user_id = get_jwt_identity()
 
     filetype = request.args.get("type")   # pdf / docx
 
@@ -523,12 +510,13 @@ def export_note(id):
         
         
 @app.route('/share_note/<int:id>', methods=['POST'])
+@jwt_required()
 def share_note(id):
 
     if not session.get('user_id'):
         return jsonify({"message":"login required"})
 
-    user_id = session['user_id']
+    user_id = get_jwt_identity()
 
     data = request.get_json()
     receiver_email = data['email']
@@ -584,12 +572,9 @@ Content:
         return jsonify({"error":str(e)})
         
 @app.route('/update_user/<int:id>', methods=['PUT'])
+@jwt_required()
 def update_account(id):
-
-    if not session.get('user_id'):
-        return jsonify({"message": "login required"})
-
-    user_id = session.get('user_id')
+    user_id=get_jwt_identity()
 
     name = request.form.get('name')
     email = request.form.get('email')
@@ -644,12 +629,9 @@ def update_account(id):
     return jsonify({"message":"updated successfully"})
 
 @app.route('/update_password', methods=['PUT'])
+@jwt_required()
 def update_password():
-
-    if not session.get('user_id'):
-        return jsonify({"message": "login required"})
-
-    user_id = session.get('user_id')
+    user_id = get_jwt_identity()
 
     data = request.get_json()
     email = data['email']
@@ -690,13 +672,9 @@ def update_password():
     return jsonify({"message": "password updated successfully"})
 
 @app.route('/profile_dashboard', methods=['GET'])
+@jwt_required()
 def profile_dashboard():
-
-    if not session.get('user_id'):
-        return jsonify({"message": "login required"})
-
-    user_id = session.get('user_id')
-
+    user_id = get_jwt_identity()
     conn = sqlite3.connect('notebook.db')
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -746,12 +724,10 @@ def predict_category(text):
 
 # ---------------- API Route ---------------- #
 @app.route('/assign_category/<int:note_id>', methods=['PUT'])
+@jwt_required()
 def assign_category(note_id):
 
-    if not session.get('user_id'):
-        return jsonify({"message": "Login required"}), 401
-
-    user_id = session['user_id']
+    user_id = get_jwt_identity()
 
     conn = sqlite3.connect('notebook.db')
     conn.row_factory = sqlite3.Row
@@ -784,9 +760,9 @@ def assign_category(note_id):
         "category": category
     })                
                                                 
-#scheduler = BackgroundScheduler()
-#scheduler.add_job(delete_old_users, 'interval', hours=24)
-#scheduler.start()
+scheduler = BackgroundScheduler()
+scheduler.add_job(delete_old_users, 'interval', hours=24)
+scheduler.start()
 
 
 # ---------------- RUN SERVER ---------------- #'''

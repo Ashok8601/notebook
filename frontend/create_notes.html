@@ -5,60 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create New Note</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; }
-        form { display: flex; flex-direction: column; width: 400px; gap: 10px; }
-        input, textarea { padding: 8px; }
-        textarea { height: 150px; }
-        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-        #message { color: red; margin-top: 10px; }
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+            background: #f4f4f4;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 400px;
+            gap: 10px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        input, textarea {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        textarea {
+            height: 150px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #message {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
-    <div>
-        <h2>Create Note</h2>
-        <form id="noteForm">
-            <input type="text" id="title" placeholder="Note Title" required>
-            <textarea id="content" placeholder="Write your note here..." required></textarea>
-            <button type="submit">Save Note</button>
-        </form>
-        <p id="message"></p>
-    </div>
 
-    <script>
-        document.getElementById('noteForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const messageElement = document.getElementById('message');
+<div>
+    <h2>Create Note</h2>
 
-            const noteData = {
-                title: document.getElementById('title').value,
-                content: document.getElementById('content').value
-            };
+    <form id="noteForm">
+        <input type="text" id="title" placeholder="Note Title" required>
+        <textarea id="content" placeholder="Write your note here..." required></textarea>
+        <button type="submit">Save Note</button>
+    </form>
 
-            try {
-                const response = await fetch('http://127.0.0.1:5000/create_note', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    // 'credentials: include' jaruri hai taki session cookie bheji ja sake
-                    credentials: 'include',
-                    body: JSON.stringify(noteData)
-                });
+    <p id="message"></p>
+</div>
 
-                const result = await response.json();
+<script>
+    // 🔥 Page load hote hi token check
+    window.onload = () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "login.html";
+        }
+    };
 
-                if (response.ok) {
-                    alert("Note created successfully!");
-                    window.location.href = 'home.html';
-                } else {
-                    messageElement.innerText = result.message;
-                    if(response.status === 401) {
-                        // Agar login nahi hai, to login page par bhej do
-                        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
-                    }
-                }
-            } catch (error) {
-                messageElement.innerText = "Error connecting to server.";
+    document.getElementById('noteForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const messageElement = document.getElementById('message');
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const noteData = {
+            title: document.getElementById('title').value,
+            content: document.getElementById('content').value
+        };
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/create_note', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token   // 🔥 JWT add kiya
+                },
+                body: JSON.stringify(noteData)
+            });
+
+            // 🔥 Token expire ya invalid
+            if (response.status === 401 || response.status === 422) {
+                localStorage.removeItem("token");
+                window.location.href = "login.html";
+                return;
             }
-        });
-    </script>
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert("Note created successfully!");
+                window.location.href = 'home.html';
+            } else {
+                messageElement.innerText = result.message || "Something went wrong";
+            }
+
+        } catch (error) {
+            messageElement.innerText = "Error connecting to server.";
+            console.error(error);
+        }
+    });
+</script>
+
 </body>
 </html>
