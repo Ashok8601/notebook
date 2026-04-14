@@ -11,3 +11,4 @@ pandas
 numpy
 scikit-learn
 apscheduler
+flask-jwt-extended
