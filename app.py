@@ -156,8 +156,8 @@ def login():
     if user['is_deleted'] == 1:
         return jsonify({"message": "Account scheduled for deletion. Recover within 30 days."})
 
-    access_token = create_access_token(identity=user['id'])
-    refresh_token = create_refresh_token(identity=user['id'])
+    access_token = create_access_token(identity=str(user['id']))
+    refresh_token = create_refresh_token(identity=str(user['id']))
 
 
     conn.close()
