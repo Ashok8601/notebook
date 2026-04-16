@@ -22,8 +22,10 @@ get_jwt_identity
 UPLOAD_FOLDER = 'uploads'
 app = Flask(__name__)
 CORS(app)
-app.config["jwt_access_token_expires"] = timedelta(minutes=15)
-app.config["jwt_refresh_token_expires"] = timedelta(days=7)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=15)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=7)
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]   # 🔥 IMPORTANT
+app.config["JWT_HEADER_TYPE"] = "Bearer"
 app.config["JWT_SECRET_KEY"] = "ashokkumaryadav"
 jwt=JWTManager(app)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
