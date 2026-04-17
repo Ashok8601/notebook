@@ -509,20 +509,16 @@ def export_note(id):
 
     else:
         return jsonify({"message":"invalid file type"})
-        
-        
+
+
 @app.route('/share_note/<int:id>', methods=['POST'])
 @jwt_required()
 def share_note(id):
 
-    if not session.get('user_id'):
-        return jsonify({"message":"login required"})
-
     user_id = get_jwt_identity()
 
     data = request.get_json()
-    receiver_email = data['email']
-
+    receiver_email = data.get('email')
     conn = sqlite3.connect('notebook.db')
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -542,8 +538,8 @@ def share_note(id):
 
     # -------- EMAIL CONFIG -------- #
 
-    sender_email = "yourgmail@gmail.com"
-    sender_password = "your_app_password"
+    sender_email = "ashokjuriya3521@gmail.com"
+    sender_password = "absbdfjadsfkjaddhfiajndnkinjfnfidfiuniuanfuiadfiaafi"
 
     msg = MIMEMultipart()
     msg['From'] = sender_email
@@ -572,18 +568,18 @@ Content:
 
     except Exception as e:
         return jsonify({"error":str(e)})
-        
+
 @app.route('/update_user/<int:id>', methods=['PUT'])
 @jwt_required()
 def update_account(id):
     user_id=get_jwt_identity()
-
-    name = request.form.get('name')
-    email = request.form.get('email')
-    dob = request.form.get('dob')
-    mobile = request.form.get('mobile')
-    username = request.form.get('username')
-    secret_key = request.form.get('secret_key')
+    data=request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    dob = data.get('dob')
+    mobile = data.get('mobile')
+    username = data.get('username')
+    secret_key = data.get('secret_key')
 
     photo = request.files.get('photo')
 
@@ -603,9 +599,9 @@ def update_account(id):
     # update user table
     cur.execute("""
     UPDATE user 
-    SET name=?, email=?, mobile=?, username=? 
+    SET name=?, email=?
     WHERE id=?
-    """,(name,email,mobile,username,user_id))
+    """,(name,email,user_id))
 
     # check profile exist
     cur.execute("SELECT id FROM user_profile WHERE user_id=?", (user_id,))
@@ -615,9 +611,9 @@ def update_account(id):
         # update profile
         cur.execute("""
         UPDATE user_profile
-        SET dob=?, photo_path=?, secret_key=?
+        SET dob=?, photo_path=?,mobile=?,username=?, secret_key=?
         WHERE user_id=?
-        """,(dob,photo_path,secret_key,user_id))
+        """,(dob,photo_path,mobile,username,secret_key,user_id))
     else:
         # insert profile
         cur.execute("""
@@ -636,9 +632,9 @@ def update_password():
     user_id = get_jwt_identity()
 
     data = request.get_json()
-    email = data['email']
-    old_password = data['old_password']
-    new_password = data['password']
+    email = data.get('email')
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
 
     conn = sqlite3.connect('notebook.db')
     conn.row_factory = sqlite3.Row
@@ -685,12 +681,11 @@ def profile_dashboard():
         SELECT 
             user.id,
             user.email,
-            user_profile.name,
-            user_profile.mobile,
-            user_profile.username,
             user_profile.dob,
             user_profile.photo_path,
-            user_profile.secret_key
+            user_profile.secret_key,
+            user_profile.mobile,
+            user.name
         FROM user
         LEFT JOIN user_profile
         ON user.id = user_profile.user_id
@@ -701,13 +696,13 @@ def profile_dashboard():
 
     if not result:
         return jsonify({"message": "user not found"})
- 
+
     return jsonify(dict(result))
 
 
 
 
-# ---------------- Load models once ---------------- 
+# ---------------- Load models once ----------------
 with open("Models/tfidf_vectorizer.pkl", "rb") as f:
     vectorizer = pickle.load(f)
 
@@ -727,6 +722,7 @@ def predict_category(text):
 # ---------------- API Route ---------------- #
 @app.route('/assign_category/<int:note_id>', methods=['PUT'])
 @jwt_required()
+# this route has one issue i have to add category checking if category assign previously so need to alert user during api call
 def assign_category(note_id):
 
     user_id = get_jwt_identity()
@@ -760,8 +756,8 @@ def assign_category(note_id):
     return jsonify({
         "message": "Category assigned",
         "category": category
-    })                
-                                                
+    })
+
 scheduler = BackgroundScheduler()
 scheduler.add_job(delete_old_users, 'interval', hours=24)
 scheduler.start()
@@ -771,4 +767,4 @@ scheduler.start()
 
 if __name__ == "__main__":
     app.run(debug=True)
-    
+
